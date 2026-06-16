@@ -1,10 +1,14 @@
 .home-page {
   --home-bg: #f4f8f7;
+  --home-surface: #ffffff;
   --home-primary: #2d6a6a;
   --home-primary-dark: #245656;
   --home-primary-soft: rgba(45, 106, 106, 0.12);
   --home-text: #1e2b2b;
   --home-muted: #6b7c7a;
+  --home-border: #d7e4e1;
+  --home-error: #c45c5c;
+  --home-error-soft: rgba(196, 92, 92, 0.12);
 
   min-height: 100svh;
   display: flex;
@@ -23,6 +27,10 @@
 .home-page__content {
   width: 100%;
   max-width: 480px;
+}
+
+.home-page__hero {
+  margin-bottom: 20px;
   text-align: left;
 }
 
@@ -45,22 +53,27 @@
 }
 
 .home-page__description {
-  margin: 0 0 24px;
+  margin: 0;
   color: var(--home-muted);
   font-size: 0.9375rem;
   line-height: 1.6;
 }
 
-.home-page__cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 0 20px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--home-primary), var(--home-primary-dark));
-  color: #fff;
-  font-weight: 700;
-  text-decoration: none;
-  box-shadow: 0 10px 24px rgba(45, 106, 106, 0.22);
+.home-page__card {
+  padding: 20px 18px 22px;
+  border: 1px solid var(--home-border);
+  border-radius: 20px;
+  background: var(--home-surface);
+  box-shadow: 0 16px 40px rgba(30, 43, 43, 0.06);
+}
+
+@media (min-width: 768px) {
+  .home-page h1 {
+    font-size: 2rem;
+  }
+
+  .home-page__card {
+    padding: 28px 24px 30px;
+    border-radius: 24px;
+  }
 }

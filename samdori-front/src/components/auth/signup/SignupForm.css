@@ -26,6 +26,48 @@
   color: var(--signup-primary);
 }
 
+.signup-form__role {
+  margin: 0;
+  padding: 0;
+}
+
+.signup-form__role-options {
+  display: flex;
+  gap: 10px;
+}
+
+.signup-form__role-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--signup-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--signup-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.signup-form__role-option:has(input:checked) {
+  border-color: var(--signup-primary);
+  background: var(--signup-primary-soft);
+  box-shadow: 0 0 0 3px rgba(45, 106, 106, 0.08);
+}
+
+.signup-form__role-option input {
+  accent-color: var(--signup-primary);
+}
+
 .signup-form__input {
   width: 100%;
   min-height: 48px;

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useSignup } from '../../../features/auth/hooks/useSignup'
 import {
   toSignupPayload,
@@ -7,6 +8,7 @@ import {
 import './SignupForm.css'
 
 const INITIAL_VALUES = {
+  role: '',
   loginId: '',
   name: '',
   phoneNumber: '',
@@ -14,6 +16,11 @@ const INITIAL_VALUES = {
   password: '',
   passwordConfirm: '',
 }
+
+const ROLE_OPTIONS = [
+  { value: 'COUNSELOR', label: '상담사' },
+  { value: 'CLIENT', label: '내담자' },
+]
 
 const FIELDS = [
   {
@@ -70,9 +77,10 @@ function formatPhoneNumber(value) {
 }
 
 export default function SignupForm() {
+  const navigate = useNavigate()
   const [values, setValues] = useState(INITIAL_VALUES)
   const [fieldErrors, setFieldErrors] = useState({})
-  const { submitSignup, isLoading, error, isSuccess } = useSignup()
+  const { submitSignup, isLoading, error } = useSignup()
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -94,28 +102,48 @@ export default function SignupForm() {
     if (Object.keys(errors).length > 0) return
 
     try {
-      await submitSignup(toSignupPayload(values))
-      setValues(INITIAL_VALUES)
+      const userData = await submitSignup(toSignupPayload(values))
+      const name = userData?.name ?? values.name.trim()
+
+      sessionStorage.setItem('userName', name)
+      navigate('/home', { state: { name } })
     } catch {
       // error state is handled in useSignup
     }
   }
 
-  if (isSuccess) {
-    return (
-      <div className="signup-form__success" role="status">
-        <div className="signup-form__success-icon" aria-hidden="true">
-          ✓
-        </div>
-        <h2>회원가입이 완료되었습니다</h2>
-        <p>이제 상담 예약을 진행하실 수 있습니다.</p>
-      </div>
-    )
-  }
-
   return (
     <form className="signup-form" onSubmit={handleSubmit} noValidate>
       <div className="signup-form__fields">
+        <div className="signup-form__field signup-form__role">
+          <span className="signup-form__label">
+            회원 유형
+            <span className="signup-form__required" aria-hidden="true">
+              *
+            </span>
+          </span>
+          <div className="signup-form__role-options">
+            {ROLE_OPTIONS.map((option) => (
+              <label key={option.value} className="signup-form__role-option">
+                <input
+                  type="radio"
+                  name="role"
+                  value={option.value}
+                  checked={values.role === option.value}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+                <span>{option.label}</span>
+              </label>
+            ))}
+          </div>
+          {fieldErrors.role && (
+            <span className="signup-form__error" role="alert">
+              {fieldErrors.role}
+            </span>
+          )}
+        </div>
+
         {FIELDS.map((field) => (
           <label key={field.name} className="signup-form__field">
             <span className="signup-form__label">

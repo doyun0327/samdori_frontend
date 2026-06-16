@@ -5,6 +5,10 @@ const LOGIN_ID_PATTERN = /^[a-zA-Z0-9_]{4,20}$/
 export function validateSignupForm(values) {
   const errors = {}
 
+  if (!values.role) {
+    errors.role = '회원 유형을 선택해 주세요.'
+  }
+
   if (!values.loginId?.trim()) {
     errors.loginId = '아이디를 입력해 주세요.'
   } else if (!LOGIN_ID_PATTERN.test(values.loginId.trim())) {
@@ -44,6 +48,7 @@ export function validateSignupForm(values) {
 
 export function toSignupPayload(values) {
   return {
+    role: values.role,
     loginId: values.loginId.trim(),
     name: values.name.trim(),
     phoneNumber: values.phoneNumber.replace(/\s/g, ''),

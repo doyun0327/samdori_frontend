@@ -7,19 +7,11 @@ export async function createUser(payload) {
     body: JSON.stringify(payload),
   })
 
+  const data = await response.json()
+
   if (!response.ok) {
-    let message = '회원가입에 실패했습니다.'
-
-    try {
-      const data = await response.json()
-      message = data.message || data.error || message
-    } catch {
-      const text = await response.text()
-      if (text) message = text
-    }
-
-    throw new Error(message)
+    throw new Error(data.message)
   }
 
-  return response.json().catch(() => ({}))
+  return data
 }
