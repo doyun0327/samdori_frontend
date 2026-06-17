@@ -25,6 +25,14 @@ function isPastDate(date) {
   return target < today
 }
 
+function isToday(date) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const target = new Date(date)
+  target.setHours(0, 0, 0, 0)
+  return target.getTime() === today.getTime()
+}
+
 export default function AvailabilityCalendar({ selectedDate, openedDates, onChange }) {
   const [viewDate, setViewDate] = useState(() => {
     const today = new Date()
@@ -85,6 +93,7 @@ export default function AvailabilityCalendar({ selectedDate, openedDates, onChan
           const isPast = isPastDate(date)
           const isOpened = openedSet.has(key)
           const isSelected = selectedDate === key
+          const isTodayDate = isToday(date)
 
           const isDisabled = !inMonth || isPast
 
@@ -95,8 +104,10 @@ export default function AvailabilityCalendar({ selectedDate, openedDates, onChan
               className={`availability-calendar__day${
                 !inMonth ? ' availability-calendar__day--outside' : ''
               }${isPast ? ' availability-calendar__day--disabled' : ''}${
-                isOpened ? ' availability-calendar__day--opened' : ''
-              }${isSelected ? ' availability-calendar__day--selected' : ''}`}
+                isTodayDate ? ' availability-calendar__day--today' : ''
+              }${isOpened ? ' availability-calendar__day--opened' : ''}${
+                isSelected ? ' availability-calendar__day--selected' : ''
+              }`}
               onClick={() => selectDate(date)}
               disabled={isDisabled}
             >

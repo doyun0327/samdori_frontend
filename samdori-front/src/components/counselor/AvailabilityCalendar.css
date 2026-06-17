@@ -69,6 +69,11 @@
   cursor: not-allowed;
 }
 
+.availability-calendar__day--today:not(.availability-calendar__day--selected) {
+  border-color: #9bb8b8;
+  font-weight: 700;
+}
+
 .availability-calendar__day--opened {
   border-color: var(--reservation-primary);
   background: var(--reservation-primary-soft);

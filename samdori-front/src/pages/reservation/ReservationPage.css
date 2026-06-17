@@ -102,6 +102,12 @@
   line-height: 1.5;
 }
 
+.reservation-page__loading {
+  margin: 16px 0 0;
+  color: var(--reservation-muted);
+  font-size: 0.875rem;
+}
+
 .reservation-page__selected-count {
   margin: 16px 0 0;
   color: var(--reservation-primary-dark);

@@ -6,6 +6,7 @@ import TimeSlotPicker from '../../components/counselor/TimeSlotPicker'
 import {
   createAvailability,
   deleteAvailability,
+  fetchAvailability,
 } from '../../features/counselor/api/availability'
 import {
   clearAuthSession,
@@ -33,6 +34,7 @@ export default function ReservationPage() {
   const [registeredSlots, setRegisteredSlots] = useState([])
   const [confirmMessage, setConfirmMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoadingAvailability, setIsLoadingAvailability] = useState(false)
 
   const openedDates = useMemo(
     () => [...new Set(registeredSlots.map((slot) => slot.date))].sort(),
@@ -59,6 +61,41 @@ export default function ReservationPage() {
       })
     }
   }, [location.state])
+
+  useEffect(() => {
+    if (!isCounselor(role) || !id) return
+
+    let cancelled = false
+
+    async function loadAvailability() {
+      setIsLoadingAvailability(true)
+
+      try {
+        const slots = await fetchAvailability(Number(id))
+        if (!cancelled) {
+          setRegisteredSlots(slots)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : '상담 가능 시간을 불러오지 못했습니다.'
+          setConfirmMessage(message)
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingAvailability(false)
+        }
+      }
+    }
+
+    loadAvailability()
+
+    return () => {
+      cancelled = true
+    }
+  }, [role, id])
 
   const handleLogout = () => {
     clearAuthSession()
@@ -113,20 +150,25 @@ export default function ReservationPage() {
     const payload = {
       id: Number(id),
       date: selectedDate,
-      timeSlots: selectedTimeSlots,
+      timeSlots: isRegisterMode
+        ? [...new Set([...registeredSlotsOnDate, ...selectedTimeSlots])].sort()
+        : selectedTimeSlots,
     }
 
     try {
       if (isRegisterMode) {
         await createAvailability(payload)
 
-        setRegisteredSlots((prev) => [
-          ...prev,
-          ...selectedTimeSlots.map((timeSlot) => ({
-            date: selectedDate,
-            timeSlot,
-          })),
-        ])
+        setRegisteredSlots((prev) => {
+          const next = prev.filter((slot) => slot.date !== selectedDate)
+          return [
+            ...next,
+            ...payload.timeSlots.map((timeSlot) => ({
+              date: selectedDate,
+              timeSlot,
+            })),
+          ]
+        })
         setConfirmMessage(
           `${selectedDate} ${selectedTimeSlots.length}개 시간이 등록되었습니다.`,
         )
@@ -212,7 +254,13 @@ export default function ReservationPage() {
                 onChange={handleDateChange}
               />
 
-              {selectedDate && (
+              {isLoadingAvailability && (
+                <p className="reservation-page__loading" role="status">
+                  등록된 상담 가능 시간을 불러오는 중입니다...
+                </p>
+              )}
+
+              {selectedDate && !isLoadingAvailability && (
                 <>
                   {!isRegisterMode && !hasRegisteredSlotsOnDate ? (
                     <p className="reservation-page__empty-state" role="status">
@@ -224,7 +272,7 @@ export default function ReservationPage() {
                       mode={mode}
                       selectedSlots={selectedTimeSlots}
                       registeredSlots={registeredSlotsOnDate}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || isLoadingAvailability}
                       onToggle={handleToggleTimeSlot}
                     />
                   )}
@@ -254,6 +302,7 @@ export default function ReservationPage() {
                 onClick={handleConfirm}
                 disabled={
                   isSubmitting ||
+                  isLoadingAvailability ||
                   (!isRegisterMode &&
                     selectedDate &&
                     !hasRegisteredSlotsOnDate)
