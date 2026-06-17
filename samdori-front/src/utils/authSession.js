@@ -33,3 +33,7 @@ export function clearAuthSession() {
 export function isCounselor(role) {
   return role === 'COUNSELOR'
 }
+
+export function isClient(role) {
+  return role === 'CLIENT'
+}

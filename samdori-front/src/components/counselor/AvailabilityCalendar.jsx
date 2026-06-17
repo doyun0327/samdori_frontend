@@ -33,7 +33,12 @@ function isToday(date) {
   return target.getTime() === today.getTime()
 }
 
-export default function AvailabilityCalendar({ selectedDate, openedDates, onChange }) {
+export default function AvailabilityCalendar({
+  selectedDate,
+  openedDates,
+  onChange,
+  onlyOpenedSelectable = false,
+}) {
   const [viewDate, setViewDate] = useState(() => {
     const today = new Date()
     return new Date(today.getFullYear(), today.getMonth(), 1)
@@ -63,7 +68,11 @@ export default function AvailabilityCalendar({ selectedDate, openedDates, onChan
 
   const selectDate = (date) => {
     if (!isSameMonth(date, viewDate) || isPastDate(date)) return
-    onChange(toDateKey(date))
+
+    const key = toDateKey(date)
+    if (onlyOpenedSelectable && !openedSet.has(key)) return
+
+    onChange(key)
   }
 
   return (
@@ -95,7 +104,8 @@ export default function AvailabilityCalendar({ selectedDate, openedDates, onChan
           const isSelected = selectedDate === key
           const isTodayDate = isToday(date)
 
-          const isDisabled = !inMonth || isPast
+          const isDisabled =
+            !inMonth || isPast || (onlyOpenedSelectable && !isOpened)
 
           return (
             <button

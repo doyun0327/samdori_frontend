@@ -16,6 +16,7 @@ const AFTERNOON_SLOTS = [12, 13, 14, 15, 16, 17, 18, 19, 20].map(createSlot)
 const MODE_COPY = {
   register: '등록할 시간을 선택해 주세요.',
   unregister: '해제할 시간을 선택해 주세요.',
+  book: '예약할 시간을 선택해 주세요.',
 }
 
 function TimeSlotSection({
@@ -25,6 +26,7 @@ function TimeSlotSection({
   onToggle,
   disabled,
   registeredSlots,
+  availableSlots = [],
   mode,
 }) {
   return (
@@ -33,23 +35,33 @@ function TimeSlotSection({
       <div className="time-slot-picker__grid">
         {slots.map((slot) => {
           const isRegistered = registeredSlots.includes(slot.value)
+          const isAvailable = availableSlots.includes(slot.value)
           const isSelected = selectedSlots.includes(slot.value)
           const isSelectable =
-            mode === 'register' ? !isRegistered : isRegistered
+            mode === 'book'
+              ? isAvailable
+              : mode === 'register'
+                ? !isRegistered
+                : isRegistered
 
           return (
             <label
               key={slot.value}
               className={`time-slot-picker__option${
-                isRegistered ? ' time-slot-picker__option--registered' : ''
-              }${!isSelectable ? ' time-slot-picker__option--inactive' : ''}${
+                mode === 'book' && isAvailable
+                  ? ' time-slot-picker__option--available'
+                  : ''
+              }${isRegistered && mode !== 'book'
+                  ? ' time-slot-picker__option--registered'
+                  : ''}${!isSelectable ? ' time-slot-picker__option--inactive' : ''}${
                 mode === 'unregister' && isSelected
                   ? ' time-slot-picker__option--remove-selected'
                   : ''
               }`}
             >
               <input
-                type="checkbox"
+                type={mode === 'book' ? 'radio' : 'checkbox'}
+                name={mode === 'book' ? 'book-slot' : undefined}
                 value={slot.value}
                 checked={isSelected}
                 onChange={() => onToggle(slot.value)}
@@ -70,6 +82,7 @@ export default function TimeSlotPicker({
   onToggle,
   disabled,
   registeredSlots = [],
+  availableSlots = [],
 }) {
   return (
     <div className="time-slot-picker">
@@ -82,6 +95,7 @@ export default function TimeSlotPicker({
         onToggle={onToggle}
         disabled={disabled}
         registeredSlots={registeredSlots}
+        availableSlots={availableSlots}
         mode={mode}
       />
 
@@ -92,6 +106,7 @@ export default function TimeSlotPicker({
         onToggle={onToggle}
         disabled={disabled}
         registeredSlots={registeredSlots}
+        availableSlots={availableSlots}
         mode={mode}
       />
     </div>

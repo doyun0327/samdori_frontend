@@ -14,6 +14,7 @@ import {
   isCounselor,
   saveAuthSession,
 } from '../../utils/authSession'
+import ClientBookingSection from '../../components/client/ClientBookingSection'
 import './ReservationPage.css'
 
 const AVAILABILITY_MODE = {
@@ -316,13 +317,7 @@ export default function ReservationPage() {
               </button>
             </>
           ) : (
-            <>
-              <p className="reservation-page__badge">상담 예약</p>
-              <h1>{name}님 안녕하세요</h1>
-              <p className="reservation-page__description">
-                오늘도 편안한 상담 되시길 바랍니다.
-              </p>
-            </>
+            <ClientBookingSection clientName={name} />
           )}
         </div>
       </main>

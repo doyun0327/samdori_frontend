@@ -159,6 +159,95 @@
   box-shadow: 0 10px 24px rgba(168, 109, 56, 0.22);
 }
 
+.client-booking__field {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.client-booking__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--reservation-text);
+}
+
+.client-booking__select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--reservation-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--reservation-text);
+  font: inherit;
+  font-size: 0.9375rem;
+}
+
+.client-booking__search {
+  position: relative;
+}
+
+.client-booking__search-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--reservation-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--reservation-text);
+  font: inherit;
+  font-size: 0.9375rem;
+  box-sizing: border-box;
+}
+
+.client-booking__search-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.client-booking__search-results {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--reservation-border);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(30, 43, 43, 0.1);
+}
+
+.client-booking__search-option {
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--reservation-text);
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.client-booking__search-option:hover,
+.client-booking__search-option[aria-selected='true'] {
+  background: var(--reservation-primary-soft);
+  color: var(--reservation-primary-dark);
+}
+
+.client-booking__search-empty {
+  padding: 12px 14px;
+  color: var(--reservation-muted);
+  font-size: 0.875rem;
+}
+
 @media (min-width: 768px) {
   .reservation-page h1 {
     font-size: 1.75rem;

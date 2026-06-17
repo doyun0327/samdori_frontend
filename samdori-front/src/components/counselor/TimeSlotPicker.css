@@ -67,6 +67,20 @@
   cursor: not-allowed;
 }
 
+.time-slot-picker__option--available {
+  border-color: var(--reservation-primary, #2d6a6a);
+  background: var(--reservation-primary-soft, rgba(45, 106, 106, 0.12));
+  color: var(--reservation-primary-dark, #245656);
+}
+
+.time-slot-picker__option--available:has(input:checked) {
+  border-color: #d4a574;
+  background: rgba(212, 165, 116, 0.22);
+  color: var(--reservation-text, #1e2b2b);
+  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.2);
+  font-weight: 700;
+}
+
 .time-slot-picker__option--registered {
   border-color: var(--reservation-primary, #2d6a6a);
   background: var(--reservation-primary-soft, rgba(45, 106, 106, 0.12));
