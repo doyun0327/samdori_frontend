@@ -90,9 +90,10 @@
 }
 
 .availability-calendar__day--opened.availability-calendar__day--selected {
-  border-color: var(--reservation-primary);
-  background: var(--reservation-primary-soft);
-  box-shadow: none;
+  border-color: #d4a574;
+  background: rgba(212, 165, 116, 0.28);
+  color: var(--reservation-text);
+  box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.4);
 }
 
 .availability-calendar__day:not(:disabled):hover {
