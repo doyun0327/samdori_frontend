@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLogin } from '../../../features/auth/hooks/useLogin'
+import { saveAuthSession } from '../../../utils/authSession'
 import {
   toLoginPayload,
   validateLoginForm,
@@ -41,12 +42,13 @@ export default function LoginForm() {
     if (Object.keys(errors).length > 0) return
 
     const userData = await submitLogin(toLoginPayload(values))
-
     const name = userData?.name
+    const role = userData?.role
+    const id = userData?.id
 
     if (name) {
-      sessionStorage.setItem('userName', name)
-      navigate('/home', { state: { name } })
+      saveAuthSession({ name, role, id })
+      navigate('/reservation', { state: { name, role, id } })
     }
   }
 

@@ -1,0 +1,95 @@
+.availability-calendar {
+  width: 100%;
+}
+
+.availability-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.availability-calendar__month {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--reservation-text);
+}
+
+.availability-calendar__nav {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--reservation-primary-dark);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.availability-calendar__weekdays,
+.availability-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.availability-calendar__weekdays {
+  margin-bottom: 8px;
+}
+
+.availability-calendar__weekday {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--reservation-muted);
+}
+
+.availability-calendar__day {
+  aspect-ratio: 1;
+  min-height: 40px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--reservation-text);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.availability-calendar__day--outside {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.availability-calendar__day--disabled {
+  color: #b8c4c2;
+  background: #f5f7f6;
+  cursor: not-allowed;
+}
+
+.availability-calendar__day--opened {
+  border-color: var(--reservation-primary);
+  background: var(--reservation-primary-soft);
+  color: var(--reservation-primary-dark);
+  font-weight: 700;
+}
+
+.availability-calendar__day--selected {
+  border-color: #d4a574;
+  background: rgba(212, 165, 116, 0.22);
+  color: var(--reservation-text);
+  font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.35);
+}
+
+.availability-calendar__day--opened.availability-calendar__day--selected {
+  border-color: var(--reservation-primary);
+  background: var(--reservation-primary-soft);
+  box-shadow: none;
+}
+
+.availability-calendar__day:not(:disabled):hover {
+  border-color: var(--reservation-primary);
+}

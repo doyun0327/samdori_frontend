@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSignup } from '../../../features/auth/hooks/useSignup'
+import { saveAuthSession } from '../../../utils/authSession'
 import {
   toSignupPayload,
   validateSignupForm,
@@ -104,9 +105,11 @@ export default function SignupForm() {
     try {
       const userData = await submitSignup(toSignupPayload(values))
       const name = userData?.name ?? values.name.trim()
+      const role = userData?.role ?? values.role
+      const id = userData?.id
 
-      sessionStorage.setItem('userName', name)
-      navigate('/home', { state: { name } })
+      saveAuthSession({ name, role, id })
+      navigate('/reservation', { state: { name, role, id } })
     } catch {
       // error state is handled in useSignup
     }

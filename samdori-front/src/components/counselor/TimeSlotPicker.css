@@ -1,0 +1,93 @@
+.time-slot-picker {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--reservation-border, #d7e4e1);
+}
+
+.time-slot-picker__title {
+  margin: 0 0 18px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--reservation-text, #1e2b2b);
+}
+
+.time-slot-picker__section + .time-slot-picker__section {
+  margin-top: 20px;
+}
+
+.time-slot-picker__period {
+  margin: 0 0 12px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--reservation-primary-dark, #245656);
+}
+
+.time-slot-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.time-slot-picker__option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 8px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--reservation-text, #1e2b2b);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.time-slot-picker__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.time-slot-picker__option:has(input:checked) {
+  border-color: var(--reservation-primary, #2d6a6a);
+  background: var(--reservation-primary-soft, rgba(45, 106, 106, 0.12));
+  color: var(--reservation-primary-dark, #245656);
+  box-shadow: 0 0 0 3px rgba(45, 106, 106, 0.08);
+}
+
+.time-slot-picker__option:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.time-slot-picker__option--registered {
+  border-color: var(--reservation-primary, #2d6a6a);
+  background: var(--reservation-primary-soft, rgba(45, 106, 106, 0.12));
+  color: var(--reservation-primary-dark, #245656);
+}
+
+.time-slot-picker__option--inactive {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.time-slot-picker__option--inactive:has(input:checked) {
+  border-color: var(--reservation-border, #d7e4e1);
+  background: #f5f7f6;
+  box-shadow: none;
+}
+
+.time-slot-picker__option--remove-selected:has(input:checked) {
+  border-color: #d4a574;
+  background: rgba(212, 165, 116, 0.22);
+  color: var(--reservation-text, #1e2b2b);
+  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.2);
+  font-weight: 700;
+}
