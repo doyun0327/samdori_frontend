@@ -109,7 +109,7 @@ export default function SignupForm() {
       const id = userData?.id
 
       saveAuthSession({ name, role, id })
-      navigate('/reservation', { state: { name, role, id } })
+      navigate('/reservation')
     } catch {
       // error state is handled in useSignup
     }

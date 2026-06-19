@@ -5,16 +5,16 @@ import { fetchCounselors } from '../../features/client/api/counselors'
 import { fetchAvailability } from '../../features/counselor/api/availability'
 
 export default function ClientBookingSection({ clientName }) {
-  const [counselors, setCounselors] = useState([])
-  const [selectedCounselorId, setSelectedCounselorId] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [availableSlots, setAvailableSlots] = useState([])
-  const [selectedDate, setSelectedDate] = useState('')
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState('')
-  const [message, setMessage] = useState('')
-  const [isLoadingCounselors, setIsLoadingCounselors] = useState(false)
-  const [isLoadingAvailability, setIsLoadingAvailability] = useState(false)
+  const [counselors, setCounselors] = useState([]) // API에서 불러온 전체 상담사 목록
+  const [selectedCounselorId, setSelectedCounselorId] = useState('') // 예약 대상으로 선택한 상담사 ID
+  const [searchQuery, setSearchQuery] = useState('') // 상담사 검색 입력값
+  const [isSearchOpen, setIsSearchOpen] = useState(false) // 상담사 검색 결과 드롭다운 표시 여부
+  const [availableSlots, setAvailableSlots] = useState([]) // 선택한 상담사의 예약 가능 슬롯 목록
+  const [selectedDate, setSelectedDate] = useState('') // 예약할 날짜 (YYYY-MM-DD)
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('') // 예약할 시간대
+  const [message, setMessage] = useState('') // 안내·에러·예약 확인 메시지
+  const [isLoadingCounselors, setIsLoadingCounselors] = useState(false) // 상담사 목록 로딩 중 여부
+  const [isLoadingAvailability, setIsLoadingAvailability] = useState(false) // 상담 가능 시간 로딩 중 여부
 
   const openedDates = useMemo(
     () => [...new Set(availableSlots.map((slot) => slot.date))].sort(),

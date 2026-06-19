@@ -48,7 +48,7 @@ export default function LoginForm() {
 
     if (name) {
       saveAuthSession({ name, role, id })
-      navigate('/reservation', { state: { name, role, id } })
+      navigate('/reservation')
     }
   }
 

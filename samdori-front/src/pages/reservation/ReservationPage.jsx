@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useLocation, Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import UserNavBar from '../../components/layout/UserNavBar'
 import AvailabilityCalendar from '../../components/counselor/AvailabilityCalendar'
 import TimeSlotPicker from '../../components/counselor/TimeSlotPicker'
@@ -12,7 +12,6 @@ import {
   clearAuthSession,
   getAuthSession,
   isCounselor,
-  saveAuthSession,
 } from '../../utils/authSession'
 import ClientBookingSection from '../../components/client/ClientBookingSection'
 import './ReservationPage.css'
@@ -23,12 +22,8 @@ const AVAILABILITY_MODE = {
 }
 
 export default function ReservationPage() {
-  const location = useLocation()
   const navigate = useNavigate()
-  const session = getAuthSession()
-  const name = location.state?.name ?? session.name
-  const role = location.state?.role ?? session.role
-  const id = location.state?.id ?? session.id
+  const { name, role, id } = getAuthSession()
   const [mode, setMode] = useState(AVAILABILITY_MODE.REGISTER)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([])
@@ -52,16 +47,6 @@ export default function ReservationPage() {
 
   const hasRegisteredSlotsOnDate = registeredSlotsOnDate.length > 0
   const isRegisterMode = mode === AVAILABILITY_MODE.REGISTER
-
-  useEffect(() => {
-    if (location.state?.name && location.state?.role) {
-      saveAuthSession({
-        name: location.state.name,
-        role: location.state.role,
-        id: location.state.id,
-      })
-    }
-  }, [location.state])
 
   useEffect(() => {
     if (!isCounselor(role) || !id) return
