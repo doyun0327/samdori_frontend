@@ -1,0 +1,13 @@
+export const BOOKING_STATUS = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED',
+}
+
+export const BOOKING_STATUS_LABEL = {
+  PENDING: '대기 중',
+  ACCEPTED: '수락됨',
+  REJECTED: '거절됨',
+  CANCELLED: '취소됨',
+}

@@ -1,0 +1,12 @@
+.availability-manager h1 {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+  line-height: 1.35;
+  color: var(--reservation-text);
+}
+
+@media (min-width: 768px) {
+  .availability-manager h1 {
+    font-size: 1.75rem;
+  }
+}

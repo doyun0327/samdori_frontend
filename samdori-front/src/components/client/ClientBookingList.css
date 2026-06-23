@@ -1,0 +1,123 @@
+.client-booking-list-section h1 {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+  line-height: 1.35;
+  color: var(--reservation-text);
+}
+
+@media (min-width: 768px) {
+  .client-booking-list-section h1 {
+    font-size: 1.75rem;
+  }
+}
+
+.client-booking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.client-booking-card {
+  padding: 16px;
+  border: 1px solid var(--reservation-border);
+  border-radius: 14px;
+  background: #fafcfc;
+}
+
+.client-booking-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.client-booking-card__counselor {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--reservation-text);
+}
+
+.client-booking-card__status {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.client-booking-card__status--pending {
+  background: rgba(212, 165, 116, 0.2);
+  color: #9a6530;
+}
+
+.client-booking-card__status--accepted {
+  background: var(--reservation-primary-soft);
+  color: var(--reservation-primary-dark);
+}
+
+.client-booking-card__status--rejected {
+  background: #eef1f0;
+  color: var(--reservation-muted);
+}
+
+.client-booking-card__status--cancelled {
+  background: #eef1f0;
+  color: var(--reservation-muted);
+}
+
+.client-booking-card__schedule {
+  margin: 0 0 4px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--reservation-text);
+}
+
+.client-booking-card__meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--reservation-muted);
+}
+
+.client-booking-card__hint {
+  margin: 10px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #9a6530;
+}
+
+.client-booking-card__hint--accepted {
+  color: var(--reservation-primary-dark);
+}
+
+.client-booking-card__hint--rejected {
+  color: var(--reservation-muted);
+}
+
+.client-booking-card__cancel {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 14px;
+  border: 1px solid var(--reservation-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--reservation-muted);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.client-booking-card__cancel:hover {
+  color: #b04545;
+  border-color: #e0bcbc;
+}
+
+.client-booking-card__cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

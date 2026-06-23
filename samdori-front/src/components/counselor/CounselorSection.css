@@ -1,0 +1,42 @@
+.counselor-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.reservation-page__section-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 14px;
+  background: #e8f0ee;
+}
+
+.reservation-page__section-button {
+  min-height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--reservation-muted);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.reservation-page__section-button--active {
+  background: #fff;
+  color: var(--reservation-primary-dark);
+  box-shadow: 0 4px 12px rgba(30, 43, 43, 0.08);
+}
+
+@media (min-width: 768px) {
+  .reservation-page__section-button {
+    font-size: 0.9375rem;
+  }
+}

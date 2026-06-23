@@ -20,11 +20,51 @@
   gap: 12px;
 }
 
+.user-nav__start {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.user-nav__menu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.user-nav__menu-button:hover {
+  opacity: 0.7;
+}
+
+.user-nav__menu-icon {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 16px;
+}
+
+.user-nav__menu-icon span {
+  display: block;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--reservation-primary-dark, #245656);
+}
+
 .user-nav__brand {
   margin: 0;
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--reservation-primary-dark, #245656);
+  white-space: nowrap;
 }
 
 .user-nav__menu {
@@ -33,10 +73,47 @@
   gap: 10px;
 }
 
-.user-nav__name {
-  padding: 8px 12px;
+.user-nav__notification {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
   border-radius: 999px;
-  background: var(--reservation-primary-soft, rgba(45, 106, 106, 0.12));
+  background: transparent;
+  cursor: pointer;
+}
+
+.user-nav__notification:hover {
+  opacity: 0.7;
+}
+
+.user-nav__notification-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.user-nav__notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #d45757;
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.user-nav__name {
   color: var(--reservation-primary-dark, #245656);
   font-size: 0.875rem;
   font-weight: 700;

@@ -3,8 +3,14 @@ import AvailabilityCalendar from '../../components/counselor/AvailabilityCalenda
 import TimeSlotPicker from '../../components/counselor/TimeSlotPicker'
 import { fetchCounselors } from '../../features/client/api/counselors'
 import { fetchAvailability } from '../../features/counselor/api/availability'
+import { createBookingRequest } from '../../features/booking/api/bookings'
+import { formatBookingSchedule } from '../../features/booking/formatBooking'
 
-export default function ClientBookingSection({ clientName }) {
+export default function ClientBookingSection({
+  clientName,
+  clientId,
+  onBookingCreated,
+}) {
   const [counselors, setCounselors] = useState([]) // API에서 불러온 전체 상담사 목록
   const [selectedCounselorId, setSelectedCounselorId] = useState('') // 예약 대상으로 선택한 상담사 ID
   const [searchQuery, setSearchQuery] = useState('') // 상담사 검색 입력값
@@ -15,6 +21,7 @@ export default function ClientBookingSection({ clientName }) {
   const [message, setMessage] = useState('') // 안내·에러·예약 확인 메시지
   const [isLoadingCounselors, setIsLoadingCounselors] = useState(false) // 상담사 목록 로딩 중 여부
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false) // 상담 가능 시간 로딩 중 여부
+  const [isSubmitting, setIsSubmitting] = useState(false) // 예약 요청 전송 중 여부
 
   const openedDates = useMemo(
     () => [...new Set(availableSlots.map((slot) => slot.date))].sort(),
@@ -150,7 +157,7 @@ export default function ClientBookingSection({ clientName }) {
     setMessage('')
   }
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedCounselorId) {
       setMessage('상담사를 선택해 주세요.')
       return
@@ -170,14 +177,33 @@ export default function ClientBookingSection({ clientName }) {
       counselors.find((counselor) => String(counselor.id) === selectedCounselorId)
         ?.name ?? '상담사'
 
-    setMessage(
-      `${counselorName} 상담사 ${selectedDate} ${selectedTimeSlot} 예약이 선택되었습니다.`,
-    )
+    setIsSubmitting(true)
+    setMessage('')
+
+    try {
+      await createBookingRequest({
+        counselorId: selectedCounselorId,
+        clientId,
+        date: selectedDate,
+        timeSlot: selectedTimeSlot,
+      })
+
+      setMessage(
+        `${counselorName} 상담사 ${formatBookingSchedule(selectedDate, selectedTimeSlot)} 예약 요청을 보냈습니다.`,
+      )
+      setSelectedTimeSlot('')
+      onBookingCreated?.()
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : '예약 요청에 실패했습니다.'
+      setMessage(errorMessage)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <>
-      <p className="reservation-page__badge">상담 예약</p>
       <h1>{clientName}님, 상담을 예약해 보세요</h1>
       <p className="reservation-page__description">
         상담사 이름을 검색해 선택한 뒤, 열려 있는 날짜와 시간만 예약할 수
@@ -202,7 +228,7 @@ export default function ClientBookingSection({ clientName }) {
                 ? '상담사 목록 불러오는 중...'
                 : '상담사 이름을 입력하세요'
             }
-            disabled={isLoadingCounselors || isLoadingAvailability}
+            disabled={isLoadingCounselors || isLoadingAvailability || isSubmitting}
             autoComplete="off"
           />
 
@@ -287,11 +313,12 @@ export default function ClientBookingSection({ clientName }) {
         disabled={
           isLoadingCounselors ||
           isLoadingAvailability ||
+          isSubmitting ||
           !selectedCounselorId ||
           openedDates.length === 0
         }
       >
-        예약하기
+        {isSubmitting ? '요청 중...' : '예약하기'}
       </button>
     </>
   )

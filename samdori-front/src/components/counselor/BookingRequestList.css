@@ -1,0 +1,127 @@
+.booking-request-list h1 {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+  line-height: 1.35;
+  color: var(--reservation-text);
+}
+
+.booking-request-list__filter {
+  margin-bottom: 16px;
+}
+
+.booking-request-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.booking-request-card {
+  padding: 16px;
+  border: 1px solid var(--reservation-border);
+  border-radius: 14px;
+  background: #fafcfc;
+}
+
+.booking-request-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.booking-request-card__client {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--reservation-text);
+}
+
+.booking-request-card__status {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.booking-request-card__status--pending {
+  background: rgba(212, 165, 116, 0.2);
+  color: #9a6530;
+}
+
+.booking-request-card__status--accepted {
+  background: var(--reservation-primary-soft);
+  color: var(--reservation-primary-dark);
+}
+
+.booking-request-card__status--rejected {
+  background: #eef1f0;
+  color: var(--reservation-muted);
+}
+
+.booking-request-card__status--cancelled {
+  background: #eef1f0;
+  color: var(--reservation-muted);
+}
+
+.booking-request-card__schedule {
+  margin: 0 0 4px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--reservation-text);
+}
+
+.booking-request-card__meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--reservation-muted);
+}
+
+.booking-request-card__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.booking-request-card__accept,
+.booking-request-card__reject {
+  min-height: 44px;
+  border: none;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.booking-request-card__accept {
+  background: linear-gradient(
+    135deg,
+    var(--reservation-primary),
+    var(--reservation-primary-dark)
+  );
+  color: #fff;
+}
+
+.booking-request-card__reject {
+  border: 1px solid var(--reservation-border);
+  background: #fff;
+  color: var(--reservation-muted);
+}
+
+.booking-request-card__accept:disabled,
+.booking-request-card__reject:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (min-width: 768px) {
+  .booking-request-list h1 {
+    font-size: 1.75rem;
+  }
+}
