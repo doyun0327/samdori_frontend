@@ -245,7 +245,7 @@ export default function ClientBookingSection({
                       onMouseDown={(event) => event.preventDefault()}
                       onClick={() => handleSelectCounselor(counselor)}
                     >
-                      {counselor.name}
+                      {`${counselor.name} (${counselor.centerName})`}
                     </button>
                   </li>
                 ))

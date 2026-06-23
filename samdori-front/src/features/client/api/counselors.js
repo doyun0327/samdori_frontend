@@ -15,5 +15,6 @@ export async function fetchCounselors() {
   return data.map((counselor) => ({
     id: counselor.id,
     name: counselor.name,
+    centerName: counselor.centerName ?? counselor.center_name ?? '',
   }))
 }
