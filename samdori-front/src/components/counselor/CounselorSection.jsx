@@ -5,9 +5,10 @@ import AvailabilityManager from './AvailabilityManager'
 import BookingRequestList from './BookingRequestList'
 import './CounselorSection.css'
 
+// 무슨 메뉴인지 구분
 export const COUNSELOR_SECTION = {
-  AVAILABILITY: 'availability',
-  REQUESTS: 'requests',
+  AVAILABILITY: 'availability', //시간 관리
+  REQUESTS: 'requests', //예약 요청
 }
 
 const BOOKINGS_UPDATED_EVENT = 'samdori-bookings-updated'
@@ -15,7 +16,7 @@ const BOOKINGS_UPDATED_EVENT = 'samdori-bookings-updated'
 export default function CounselorSection({
   counselorId,
   section,
-  onPendingCountChange,
+  onPendingCountChange, //대기 중(PENDING) 예약이 몇 건인지」 부모에게 알려주는 콜백 함수
 }) {
   const loadPendingCount = useCallback(async () => {
     if (!counselorId) return

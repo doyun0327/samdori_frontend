@@ -14,9 +14,9 @@ export const CLIENT_SECTION = {
 export default function ClientSection({
   clientName,
   clientId,
-  section,
-  onSectionChange,
-  onResponsesViewed,
+  section, // 지금 탭 (book / list)
+  onSectionChange,//탭 바꿀 때 
+  onResponsesViewed,//🔔 알림 숫자 다시 계산 (읽음 처리 후)
 }) {
   const [pendingTabCount, setPendingTabCount] = useState(0)
 
