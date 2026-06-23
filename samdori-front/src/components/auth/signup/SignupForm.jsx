@@ -10,6 +10,7 @@ import './SignupForm.css'
 
 const INITIAL_VALUES = {
   role: '',
+  centerName: '',
   loginId: '',
   name: '',
   phoneNumber: '',
@@ -87,10 +88,22 @@ export default function SignupForm() {
     const { name, value } = event.target
     const nextValue = name === 'phoneNumber' ? formatPhoneNumber(value) : value
 
-    setValues((prev) => ({ ...prev, [name]: nextValue }))
+    setValues((prev) => {
+      const next = { ...prev, [name]: nextValue }
+
+      if (name === 'role' && value !== 'COUNSELOR') {
+        next.centerName = ''
+      }
+
+      return next
+    })
 
     if (fieldErrors[name]) {
       setFieldErrors((prev) => ({ ...prev, [name]: '' }))
+    }
+
+    if (name === 'role' && value !== 'COUNSELOR' && fieldErrors.centerName) {
+      setFieldErrors((prev) => ({ ...prev, centerName: '' }))
     }
   }
 
@@ -146,6 +159,34 @@ export default function SignupForm() {
             </span>
           )}
         </div>
+
+        {values.role === 'COUNSELOR' && (
+          <label className="signup-form__field">
+            <span className="signup-form__label">
+              센터이름
+              <span className="signup-form__required" aria-hidden="true">
+                *
+              </span>
+            </span>
+            <input
+              className={`signup-form__input${
+                fieldErrors.centerName ? ' signup-form__input--error' : ''
+              }`}
+              name="centerName"
+              type="text"
+              value={values.centerName}
+              onChange={handleChange}
+              placeholder="센터명을 입력하세요"
+              autoComplete="organization"
+              disabled={isLoading}
+            />
+            {fieldErrors.centerName && (
+              <span className="signup-form__error" role="alert">
+                {fieldErrors.centerName}
+              </span>
+            )}
+          </label>
+        )}
 
         {FIELDS.map((field) => (
           <label key={field.name} className="signup-form__field">

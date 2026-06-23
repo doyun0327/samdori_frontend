@@ -43,11 +43,15 @@ export function validateSignupForm(values) {
     errors.passwordConfirm = '비밀번호가 일치하지 않습니다.'
   }
 
+  if (values.role === 'COUNSELOR' && !values.centerName?.trim()) {
+    errors.centerName = '센터이름을 입력해 주세요.'
+  }
+
   return errors
 }
 
 export function toSignupPayload(values) {
-  return {
+  const payload = {
     role: values.role,
     loginId: values.loginId.trim(),
     name: values.name.trim(),
@@ -55,4 +59,10 @@ export function toSignupPayload(values) {
     email: values.email.trim(),
     password: values.password,
   }
+
+  if (values.role === 'COUNSELOR') {
+    payload.centerName = values.centerName.trim()
+  }
+
+  return payload
 }
