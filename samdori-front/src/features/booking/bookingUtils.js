@@ -1,3 +1,12 @@
+import { BOOKING_STATUS } from './constants'
+
+export const BOOKINGS_UPDATED_EVENT = 'samdori-bookings-updated'
+
+export function countPendingBookings(bookings) {
+  return bookings.filter((booking) => booking.status === BOOKING_STATUS.PENDING)
+    .length
+}
+
 export function normalizeBooking(raw) {
   return {
     id: String(raw.id),
@@ -25,5 +34,5 @@ export function extractBookings(data) {
 }
 
 export function notifyBookingsUpdated() {
-  window.dispatchEvent(new Event('samdori-bookings-updated'))
+  window.dispatchEvent(new Event(BOOKINGS_UPDATED_EVENT))
 }

@@ -12,6 +12,7 @@ import {
   formatBookingSchedule,
   formatRequestedAt,
 } from '../../features/booking/formatBooking'
+import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
 import './BookingRequestList.css'
 
 const REQUEST_FILTER = {
@@ -64,7 +65,7 @@ function BookingRequestCard({ request, isProcessing, onAccept, onReject }) {
   )
 }
 
-export default function BookingRequestList({ counselorId, onPendingCountChange }) {
+export default function BookingRequestList({ counselorId }) {
   const [requests, setRequests] = useState([])
   const [filter, setFilter] = useState(REQUEST_FILTER.PENDING)
   const [isLoading, setIsLoading] = useState(false)
@@ -72,29 +73,34 @@ export default function BookingRequestList({ counselorId, onPendingCountChange }
   const [message, setMessage] = useState('')
 
   const loadRequests = useCallback(async () => {
+    // 상담사 ID가 없으면 API 호출 없이 종료
     if (!counselorId) return
 
+    // 목록 로딩 중 UI 표시
     setIsLoading(true)
 
     try {
+      // 서버에서 이 상담사에게 온 예약 요청 전체 목록 조회
       const list = await fetchCounselorBookingRequests(counselorId)
+      // 화면에 보여줄 예약 요청 목록 state 갱신
       setRequests(list)
-      const pendingCount = list.filter(
-        (request) => request.status === BOOKING_STATUS.PENDING,
-      ).length
-      onPendingCountChange?.(pendingCount)
     } catch (error) {
+      // API 실패 시 에러 메시지 추출 (Error 객체면 message, 아니면 기본 문구)
       const errorMessage =
         error instanceof Error ? error.message : '예약 요청을 불러오지 못했습니다.'
+      // 사용자에게 보여줄 안내/에러 메시지 설정
       setMessage(errorMessage)
     } finally {
+      // 성공·실패와 관계없이 로딩 상태 해제
       setIsLoading(false)
     }
-  }, [counselorId, onPendingCountChange])
+  }, [counselorId])
 
   useEffect(() => {
     loadRequests()
   }, [loadRequests])
+
+  useBookingsUpdatedListener(loadRequests)
 
   const filteredRequests = useMemo(() => {
     if (filter === REQUEST_FILTER.PENDING) {

@@ -23,6 +23,18 @@ export function isClientResponseStatus(status) {
   )
 }
 
+export function isBookingForClient(booking, clientId) {
+  return Boolean(
+    booking && clientId && String(booking.clientId) === String(clientId),
+  )
+}
+
+export function isBookingForCounselor(booking, counselorId) {
+  return Boolean(
+    booking && counselorId && String(booking.counselorId) === String(counselorId),
+  )
+}
+
 export function getClientUnreadResponseCount(bookings, clientId) {
   if (!clientId) return 0
 

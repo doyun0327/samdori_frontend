@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '../../../config/api'
-import { BOOKING_STATUS } from '../constants'
 import {
+  countPendingBookings,
   extractBookings,
   normalizeBooking,
   notifyBookingsUpdated,
@@ -43,6 +43,7 @@ export async function createBookingRequest({
   return normalizeBooking(booking)
 }
 
+
 export async function fetchCounselorBookingRequests(counselorId) {
   const data = await requestJson(
     `${API_BASE_URL}/api/bookings/counselor?counselorId=${counselorId}`,
@@ -65,8 +66,7 @@ export async function fetchClientBookingRequests(clientId) {
 
 export async function fetchCounselorPendingCount(counselorId) {
   const requests = await fetchCounselorBookingRequests(counselorId)
-  return requests.filter((request) => request.status === BOOKING_STATUS.PENDING)
-    .length
+  return countPendingBookings(requests)
 }
 
 export async function acceptBookingRequest(bookingId, counselorId) {

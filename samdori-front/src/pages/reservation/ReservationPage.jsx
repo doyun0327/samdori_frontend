@@ -10,18 +10,22 @@ import ClientSection, {
 } from '../../components/client/ClientSection'
 import {
   fetchClientBookingRequests,
-  fetchCounselorBookingRequests,
+  fetchCounselorPendingCount,
 } from '../../features/booking/api/bookings'
 import { getClientUnreadResponseCount } from '../../features/booking/clientBookingNotifications'
-import { BOOKING_STATUS } from '../../features/booking/constants'
+import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
 import {
   clearAuthSession,
   getAuthSession,
+  isClient,
   isCounselor,
 } from '../../utils/authSession'
+import {
+  getBookingNotificationMessage,
+  isRelevantBookingUpdate,
+} from '../../features/notifications/getBookingNotificationMessage'
+import { useNotificationStream } from '../../features/notifications/hooks/useNotificationStream'
 import './ReservationPage.css'
-
-const BOOKINGS_UPDATED_EVENT = 'samdori-bookings-updated'
 
 export default function ReservationPage() {
   const navigate = useNavigate()
@@ -34,6 +38,7 @@ export default function ReservationPage() {
   const [clientSection, setClientSection] = useState(CLIENT_SECTION.BOOK)
   const [notificationCount, setNotificationCount] = useState(0)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [toast, setToast] = useState('')
 
   const loadNotificationCount = useCallback(async () => {
     if (!id) {
@@ -43,11 +48,7 @@ export default function ReservationPage() {
 
     try {
       if (counselor) {
-        const requests = await fetchCounselorBookingRequests(id)
-        const count = requests.filter(
-          (request) => request.status === BOOKING_STATUS.PENDING,
-        ).length
-        setNotificationCount(count)
+        setNotificationCount(await fetchCounselorPendingCount(id))
         return
       }
 
@@ -58,20 +59,69 @@ export default function ReservationPage() {
     }
   }, [counselor, id])
 
+  const handleBookingUpdated = useCallback(
+    (booking) => {
+      if (isRelevantBookingUpdate(booking, id, role)) {
+        const message = getBookingNotificationMessage(booking, role)
+        if (message) {
+          setToast(message)
+        }
+      }
+
+      loadNotificationCount()
+    },
+    [id, loadNotificationCount, role],
+  )
+
+  // 페이지 들어올 때 연결, 나갈 때 해제 호출
+  // url 이 reservation 일 때만 연결이 되도록 해둔건데.. 메뉴에 따라 url 변경된다면 이부분 수정 해야 함
+  const { disconnect: disconnectStream } = useNotificationStream({
+    userId: id,
+    role,
+    onBookingUpdated: handleBookingUpdated,
+  })
+
+  useEffect(() => {
+    if (!toast) {
+      return undefined
+    }
+
+    const timer = window.setTimeout(() => setToast(''), 4000)
+    return () => window.clearTimeout(timer)
+  }, [toast])
+
+  useBookingsUpdatedListener(loadNotificationCount)
+
   useEffect(() => {
     loadNotificationCount()
   }, [loadNotificationCount])
 
   useEffect(() => {
-    const handleBookingsUpdated = () => {
-      loadNotificationCount()
+    if (!isClient(role) || !id) {
+      return undefined
     }
 
-    window.addEventListener(BOOKINGS_UPDATED_EVENT, handleBookingsUpdated)
-    return () => {
-      window.removeEventListener(BOOKINGS_UPDATED_EVENT, handleBookingsUpdated)
+    const refreshOnVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadNotificationCount()
+      }
     }
-  }, [loadNotificationCount])
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        loadNotificationCount()
+      }
+    }, 10000)
+
+    document.addEventListener('visibilitychange', refreshOnVisible)
+    window.addEventListener('focus', loadNotificationCount)
+
+    return () => {
+      window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', refreshOnVisible)
+      window.removeEventListener('focus', loadNotificationCount)
+    }
+  }, [id, loadNotificationCount, role])
 
   const counselorNavItems = useMemo(
     () => [
@@ -86,6 +136,7 @@ export default function ReservationPage() {
   )
 
   const handleLogout = () => {
+    disconnectStream()
     clearAuthSession()
     navigate('/', { replace: true })
   }
@@ -136,7 +187,6 @@ export default function ReservationPage() {
             <CounselorSection
               counselorId={id}
               section={counselorSection}
-              onPendingCountChange={setNotificationCount}
             />
           ) : (
             <ClientSection

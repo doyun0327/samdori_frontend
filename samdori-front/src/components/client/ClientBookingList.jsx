@@ -11,9 +11,9 @@ import {
   formatBookingSchedule,
   formatRequestedAt,
 } from '../../features/booking/formatBooking'
+import { countPendingBookings } from '../../features/booking/bookingUtils'
+import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
 import './ClientBookingList.css'
-
-const BOOKINGS_UPDATED_EVENT = 'samdori-bookings-updated'
 
 function ClientBookingCard({ booking, isCancelling, onCancel }) {
   const canCancel = booking.status === BOOKING_STATUS.PENDING
@@ -99,10 +99,7 @@ export default function ClientBookingList({ clientId, onPendingCountChange }) {
     try {
       const list = await fetchClientBookingRequests(clientId)
       setBookings(list)
-      const pendingCount = list.filter(
-        (booking) => booking.status === BOOKING_STATUS.PENDING,
-      ).length
-      onPendingCountChange?.(pendingCount)
+      onPendingCountChange?.(countPendingBookings(list))
     } catch {
       setBookings([])
       onPendingCountChange?.(0)
@@ -115,16 +112,7 @@ export default function ClientBookingList({ clientId, onPendingCountChange }) {
     loadBookings()
   }, [loadBookings])
 
-  useEffect(() => {
-    const handleBookingsUpdated = () => {
-      loadBookings()
-    }
-
-    window.addEventListener(BOOKINGS_UPDATED_EVENT, handleBookingsUpdated)
-    return () => {
-      window.removeEventListener(BOOKINGS_UPDATED_EVENT, handleBookingsUpdated)
-    }
-  }, [loadBookings])
+  useBookingsUpdatedListener(loadBookings)
 
   const handleCancel = async (bookingId) => {
     const confirmed = window.confirm('이 예약을 취소하시겠습니까?')
