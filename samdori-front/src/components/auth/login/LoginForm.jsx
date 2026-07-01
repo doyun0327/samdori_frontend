@@ -1,7 +1,12 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useLogin } from '../../../features/auth/hooks/useLogin'
-import { saveAuthSession } from '../../../utils/authSession'
+import { getAuthSession, saveAuthSession } from '../../../utils/authSession'
+import {
+  getSavedLoginId,
+  isKeepLoginEnabled,
+  saveLoginPersistence,
+} from '../../../utils/loginPersistence'
 import { registerSamdoriDeviceToken } from '../../../utils/samdoriPushContext'
 import {
   toLoginPayload,
@@ -9,16 +14,42 @@ import {
 } from '../../../features/auth/validators/loginValidator'
 import './LoginForm.css'
 
-const INITIAL_VALUES = {
-  loginId: '',
-  password: '',
-}
-
 export default function LoginForm() {
   const navigate = useNavigate()
-  const [values, setValues] = useState(INITIAL_VALUES)
+  const location = useLocation()
+  const [values, setValues] = useState(() => ({
+    loginId: getSavedLoginId(),
+    password: '',
+  }))
+  const [keepLogin, setKeepLogin] = useState(isKeepLoginEnabled)
+  const [blockPasswordAutofill, setBlockPasswordAutofill] = useState(false)
   const [fieldErrors, setFieldErrors] = useState({})
   const { submitLogin, isLoading, error, clearError } = useLogin()
+
+  useEffect(() => {
+    const fromLogout = location.state?.fromLogout
+
+    if (fromLogout) {
+      setValues({
+        loginId: getSavedLoginId(),
+        password: '',
+      })
+      setKeepLogin(isKeepLoginEnabled())
+      setBlockPasswordAutofill(true)
+      navigate('.', { replace: true, state: null })
+      return
+    }
+
+    const savedLoginId = getSavedLoginId()
+    if (savedLoginId) {
+      setValues((prev) => ({ ...prev, loginId: savedLoginId, password: '' }))
+    }
+
+    const { name } = getAuthSession()
+    if (name) {
+      navigate('/reservation', { replace: true })
+    }
+  }, [location.state, navigate])
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -49,6 +80,11 @@ export default function LoginForm() {
     if (!name || id == null) return
 
     saveAuthSession({ name, role, id })
+    saveLoginPersistence({
+      keepLogin,
+      loginId: values.loginId.trim(),
+      session: { name, role, id },
+    })
 
     await registerSamdoriDeviceToken(id)
     navigate('/reservation')
@@ -88,7 +124,8 @@ export default function LoginForm() {
           value={values.password}
           onChange={handleChange}
           placeholder="비밀번호를 입력해 주세요"
-          autoComplete="current-password"
+          autoComplete={blockPasswordAutofill ? 'new-password' : 'current-password'}
+          onFocus={() => setBlockPasswordAutofill(false)}
           disabled={isLoading}
         />
         {fieldErrors.password && (
@@ -96,6 +133,16 @@ export default function LoginForm() {
             {fieldErrors.password}
           </span>
         )}
+      </label>
+
+      <label className="login-form__remember">
+        <input
+          type="checkbox"
+          checked={keepLogin}
+          onChange={(event) => setKeepLogin(event.target.checked)}
+          disabled={isLoading}
+        />
+        <span>아이디 저장</span>
       </label>
 
       {error !== '' && (

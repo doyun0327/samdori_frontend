@@ -56,6 +56,24 @@
   color: var(--home-error);
 }
 
+.login-form__remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--home-text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.login-form__remember input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--home-primary);
+  cursor: pointer;
+}
+
 .login-form__server-error {
   margin: 0;
   padding: 12px 14px;

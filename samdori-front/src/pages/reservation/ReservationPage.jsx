@@ -20,6 +20,7 @@ import {
   isClient,
   isCounselor,
 } from '../../utils/authSession'
+import { clearPersistedSession } from '../../utils/loginPersistence'
 import {
   getBookingNotificationMessage,
   isRelevantBookingUpdate,
@@ -138,7 +139,8 @@ export default function ReservationPage() {
   const handleLogout = () => {
     disconnectStream()
     clearAuthSession()
-    navigate('/', { replace: true })
+    clearPersistedSession()
+    navigate('/', { replace: true, state: { fromLogout: true } })
   }
 
   const handleNotificationClick = () => {
