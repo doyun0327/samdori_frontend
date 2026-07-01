@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLogin } from '../../../features/auth/hooks/useLogin'
 import { saveAuthSession } from '../../../utils/authSession'
+import { registerSamdoriDeviceToken } from '../../../utils/samdoriPushContext'
 import {
   toLoginPayload,
   validateLoginForm,
@@ -41,15 +42,16 @@ export default function LoginForm() {
 
     if (Object.keys(errors).length > 0) return
 
+    // ① 로그인 → ② 주입된 fcmToken으로 DB 저장
     const userData = await submitLogin(toLoginPayload(values))
-    const name = userData?.name
-    const role = userData?.role
-    const id = userData?.id
+    const { id, name, role } = userData ?? {}
 
-    if (name) {
-      saveAuthSession({ name, role, id })
-      navigate('/reservation')
-    }
+    if (!name || id == null) return
+
+    saveAuthSession({ name, role, id })
+
+    await registerSamdoriDeviceToken(id)
+    navigate('/reservation')
   }
 
   return (

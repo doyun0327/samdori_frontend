@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../../../config/api'
+import { parseLoginResponse } from '../parseLoginResponse'
 
 export async function login(payload) {
   const response = await fetch(`${API_BASE_URL}/api/user/login`, {
@@ -13,5 +14,5 @@ export async function login(payload) {
     return { success: false, message: data.message ?? '로그인에 실패했습니다.' }
   }
 
-  return { success: true, data }
+  return { success: true, data: parseLoginResponse(data) }
 }
