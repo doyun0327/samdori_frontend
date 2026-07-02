@@ -63,13 +63,28 @@
   pointer-events: none;
 }
 
-.availability-calendar__day--disabled {
+.availability-calendar__day--disabled,
+.availability-calendar__day:disabled {
   color: #b8c4c2;
   background: #f5f7f6;
+  border-color: var(--reservation-border, #d7e4e1);
   cursor: not-allowed;
+  font-weight: inherit;
+  box-shadow: none;
+  opacity: 0.85;
 }
 
-.availability-calendar__day--today:not(.availability-calendar__day--selected) {
+.availability-calendar__day--disabled.availability-calendar__day--opened,
+.availability-calendar__day:disabled.availability-calendar__day--opened,
+.availability-calendar__day--disabled.availability-calendar__day--selected,
+.availability-calendar__day:disabled.availability-calendar__day--selected {
+  color: #b8c4c2;
+  background: #f5f7f6;
+  border-color: var(--reservation-border, #d7e4e1);
+  box-shadow: none;
+}
+
+.availability-calendar__day--today:not(.availability-calendar__day--selected):not(:disabled) {
   border-color: #9bb8b8;
   font-weight: 700;
 }

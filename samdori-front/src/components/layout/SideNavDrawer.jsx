@@ -63,7 +63,7 @@ export default function SideNavDrawer({
                 className={`side-nav-drawer__item${
                   activeId === item.id ? ' side-nav-drawer__item--active' : ''
                 }`}
-                onClick={() => onSelect(item.id)}
+                onClick={() => onSelect(item)}
                 aria-current={activeId === item.id ? 'page' : undefined}
               >
                 <span>{item.label}</span>

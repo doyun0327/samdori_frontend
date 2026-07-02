@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import UserNavBar from '../../components/layout/UserNavBar'
 import SideNavDrawer from '../../components/layout/SideNavDrawer'
 import CounselorSection, {
@@ -8,6 +8,10 @@ import CounselorSection, {
 import ClientSection, {
   CLIENT_SECTION,
 } from '../../components/client/ClientSection'
+import {
+  COUNSELOR_REQUESTS_PATH,
+  RESERVATION_PATH,
+} from '../../routes/paths'
 import {
   fetchClientBookingRequests,
   fetchCounselorPendingCount,
@@ -30,12 +34,15 @@ import './ReservationPage.css'
 
 export default function ReservationPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { name, role, id } = getAuthSession()
   const counselor = isCounselor(role)
 
-  const [counselorSection, setCounselorSection] = useState(
-    COUNSELOR_SECTION.AVAILABILITY,
-  )
+  const counselorSection =
+    location.pathname === COUNSELOR_REQUESTS_PATH
+      ? COUNSELOR_SECTION.REQUESTS
+      : COUNSELOR_SECTION.AVAILABILITY
+
   const [clientSection, setClientSection] = useState(CLIENT_SECTION.BOOK)
   const [notificationCount, setNotificationCount] = useState(0)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -74,8 +81,7 @@ export default function ReservationPage() {
     [id, loadNotificationCount, role],
   )
 
-  // 페이지 들어올 때 연결, 나갈 때 해제 호출
-  // url 이 reservation 일 때만 연결이 되도록 해둔건데.. 메뉴에 따라 url 변경된다면 이부분 수정 해야 함
+  // 상담사 메뉴 URL: /reservation(시간 관리), /reservation/requests(예약 요청)
   const { disconnect: disconnectStream } = useNotificationStream({
     userId: id,
     role,
@@ -126,10 +132,15 @@ export default function ReservationPage() {
 
   const counselorNavItems = useMemo(
     () => [
-      { id: COUNSELOR_SECTION.AVAILABILITY, label: '시간 관리' },
+      {
+        id: COUNSELOR_SECTION.AVAILABILITY,
+        label: '시간 관리',
+        path: RESERVATION_PATH,
+      },
       {
         id: COUNSELOR_SECTION.REQUESTS,
         label: '예약 요청',
+        path: COUNSELOR_REQUESTS_PATH,
         badge: notificationCount,
       },
     ],
@@ -145,20 +156,24 @@ export default function ReservationPage() {
 
   const handleNotificationClick = () => {
     if (counselor) {
-      setCounselorSection(COUNSELOR_SECTION.REQUESTS)
+      navigate(COUNSELOR_REQUESTS_PATH)
       return
     }
 
     setClientSection(CLIENT_SECTION.LIST)
   }
 
-  const handleCounselorNavSelect = (sectionId) => {
-    setCounselorSection(sectionId)
+  const handleCounselorNavSelect = (item) => {
+    navigate(item.path)
     setIsDrawerOpen(false)
   }
 
   if (!name) {
     return <Navigate to="/" replace />
+  }
+
+  if (!counselor && location.pathname === COUNSELOR_REQUESTS_PATH) {
+    return <Navigate to={RESERVATION_PATH} replace />
   }
 
   return (

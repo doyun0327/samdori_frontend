@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './AvailabilityCalendar.css'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -17,20 +17,16 @@ function isSameMonth(date, viewDate) {
   )
 }
 
-function isPastDate(date) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const target = new Date(date)
-  target.setHours(0, 0, 0, 0)
-  return target < today
+function getTodayKey() {
+  return toDateKey(new Date())
+}
+
+function isBeforeToday(date) {
+  return toDateKey(date) < getTodayKey()
 }
 
 function isToday(date) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const target = new Date(date)
-  target.setHours(0, 0, 0, 0)
-  return target.getTime() === today.getTime()
+  return toDateKey(date) === getTodayKey()
 }
 
 export default function AvailabilityCalendar({
@@ -44,7 +40,23 @@ export default function AvailabilityCalendar({
     return new Date(today.getFullYear(), today.getMonth(), 1)
   })
 
-  const openedSet = useMemo(() => new Set(openedDates), [openedDates])
+  const openedSet = useMemo(() => {
+    const set = new Set()
+
+    for (const dateKey of openedDates) {
+      if (dateKey >= getTodayKey()) {
+        set.add(dateKey)
+      }
+    }
+
+    return set
+  }, [openedDates])
+
+  useEffect(() => {
+    if (selectedDate && selectedDate < getTodayKey()) {
+      onChange('')
+    }
+  }, [onChange, selectedDate])
 
   const calendarDays = useMemo(() => {
     const year = viewDate.getFullYear()
@@ -67,7 +79,7 @@ export default function AvailabilityCalendar({
   }
 
   const selectDate = (date) => {
-    if (!isSameMonth(date, viewDate) || isPastDate(date)) return
+    if (!isSameMonth(date, viewDate) || isBeforeToday(date)) return
 
     const key = toDateKey(date)
     if (onlyOpenedSelectable && !openedSet.has(key)) return
@@ -99,11 +111,12 @@ export default function AvailabilityCalendar({
         {calendarDays.map((date) => {
           const key = toDateKey(date)
           const inMonth = isSameMonth(date, viewDate)
-          const isPast = isPastDate(date)
-          const isOpened = openedSet.has(key)
-          const isSelected = selectedDate === key
+          const isPast = isBeforeToday(date)
+          const isOpened = !isPast && openedSet.has(key)
+          const isSelected = !isPast && selectedDate === key
           const isTodayDate = isToday(date)
 
+          // 오늘·미래만 선택 가능 (과거만 비활성)
           const isDisabled =
             !inMonth || isPast || (onlyOpenedSelectable && !isOpened)
 
