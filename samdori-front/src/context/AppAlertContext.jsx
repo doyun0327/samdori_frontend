@@ -18,12 +18,28 @@ export function AppAlertProvider({ children }) {
     })
   }, [])
 
+  const showCancelReason = useCallback((message, options = {}) => {
+    return new Promise((resolve) => {
+      setAlertState({
+        message,
+        type: 'cancelReason',
+        resolve,
+        reasonLabel: options.reasonLabel ?? '취소 사유',
+        reasonPlaceholder:
+          options.reasonPlaceholder ?? '취소 사유를 입력해 주세요.',
+        reasonRequired: options.reasonRequired !== false,
+      })
+    })
+  }, [])
+
   const closeAlert = useCallback((result) => {
     setAlertState((current) => {
       if (!current) return null
 
       if (current.type === 'confirm') {
         current.resolve(Boolean(result))
+      } else if (current.type === 'cancelReason') {
+        current.resolve(result ?? null)
       } else {
         current.resolve()
       }
@@ -33,8 +49,8 @@ export function AppAlertProvider({ children }) {
   }, [])
 
   const value = useMemo(
-    () => ({ showAlert, showConfirm }),
-    [showAlert, showConfirm],
+    () => ({ showAlert, showConfirm, showCancelReason }),
+    [showAlert, showConfirm, showCancelReason],
   )
 
   return (
@@ -46,6 +62,16 @@ export function AppAlertProvider({ children }) {
           confirm
           onClose={() => closeAlert(false)}
           onConfirm={() => closeAlert(true)}
+        />
+      ) : alertState?.type === 'cancelReason' ? (
+        <AppAlert
+          message={alertState.message}
+          withReason
+          reasonLabel={alertState.reasonLabel}
+          reasonPlaceholder={alertState.reasonPlaceholder}
+          reasonRequired={alertState.reasonRequired}
+          onClose={() => closeAlert(null)}
+          onConfirm={(reason) => closeAlert(reason)}
         />
       ) : (
         alertState && (

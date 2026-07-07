@@ -63,11 +63,18 @@
   display: grid;
   grid-template-columns: 112px 1fr;
   gap: 12px;
-  align-items: center;
+  align-items: start;
   padding: 12px 14px;
   border-radius: 12px;
   background: #fff;
   border: 1px solid rgba(45, 106, 106, 0.08);
+}
+
+.counselor-schedule__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
 }
 
 .counselor-schedule__time {
@@ -99,6 +106,29 @@
   color: var(--reservation-primary-dark, #245656);
   font-size: 0.75rem;
   font-weight: 700;
+}
+
+.counselor-schedule__cancel {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--reservation-muted, #6b7b7b);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.counselor-schedule__cancel:hover {
+  color: #b04545;
+  border-color: #e0bcbc;
+}
+
+.counselor-schedule__cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (min-width: 768px) {

@@ -120,6 +120,30 @@
   cursor: not-allowed;
 }
 
+.booking-request-card__cancel {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 14px;
+  border: 1px solid var(--reservation-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--reservation-muted);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.booking-request-card__cancel:hover {
+  color: #b04545;
+  border-color: #e0bcbc;
+}
+
+.booking-request-card__cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (min-width: 768px) {
   .booking-request-list h1 {
     font-size: 1.75rem;

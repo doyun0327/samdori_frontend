@@ -18,6 +18,13 @@
   box-shadow: 0 20px 48px rgba(30, 43, 43, 0.18);
   text-align: center;
   animation: app-alert-enter 0.22s ease;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.app-alert__dialog--with-reason {
+  width: min(400px, 100%);
+  text-align: left;
 }
 
 .app-alert__message {
@@ -27,6 +34,64 @@
   font-weight: 600;
   line-height: 1.5;
   white-space: pre-line;
+}
+
+.app-alert__dialog--with-reason .app-alert__message {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.app-alert__reason {
+  margin-bottom: 20px;
+  width: 100%;
+  min-width: 0;
+}
+
+.app-alert__reason-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--reservation-text, #1e2b2b);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.app-alert__reason-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 96px;
+  max-width: 100%;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--reservation-text, #1e2b2b);
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  box-sizing: border-box;
+  resize: vertical;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.app-alert__reason-input::placeholder {
+  color: var(--reservation-muted, #6b7b7b);
+}
+
+.app-alert__reason-input:focus {
+  outline: none;
+  border-color: var(--reservation-primary, #2d6a6a);
+  box-shadow: 0 0 0 3px rgba(45, 106, 106, 0.12);
+}
+
+.app-alert__reason-error {
+  margin: 8px 0 0;
+  color: #b04545;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 
 .app-alert__button {
@@ -54,6 +119,12 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.app-alert__actions .app-alert__button {
+  min-width: 0;
 }
 
 .app-alert__button--secondary {

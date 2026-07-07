@@ -15,7 +15,9 @@ import './ClientBookingList.css'
 function isUpcomingBooking(booking) {
   if (
     booking.status === BOOKING_STATUS.REJECTED ||
-    booking.status === BOOKING_STATUS.CANCELLED
+    booking.status === BOOKING_STATUS.CANCELLED ||
+    booking.cancelledAt ||
+    booking.cancelledBy
   ) {
     return false
   }
@@ -40,7 +42,7 @@ export default function ClientBookingList({ clientId, onPendingCountChange }) {
   const [cancellingId, setCancellingId] = useState('')
   const [message, setMessage] = useState('')
   const [isPastModalOpen, setIsPastModalOpen] = useState(false)
-  const { showConfirm } = useAppAlert()
+  const { showCancelReason } = useAppAlert()
 
   const loadBookings = useCallback(async () => {
     if (!clientId) {
@@ -89,14 +91,14 @@ export default function ClientBookingList({ clientId, onPendingCountChange }) {
   }, [bookings])
 
   const handleCancel = async (bookingId) => {
-    const confirmed = await showConfirm('예약을 취소하시겠습니까?')
-    if (!confirmed) return
+    const reason = await showCancelReason('예약을 취소하시겠습니까?')
+    if (reason === null) return
 
     setCancellingId(bookingId)
     setMessage('')
 
     try {
-      await cancelClientBookingRequest(bookingId, clientId)
+      await cancelClientBookingRequest(bookingId, clientId, reason)
       await loadBookings()
       setMessage('예약이 취소되었습니다.')
     } catch (error) {

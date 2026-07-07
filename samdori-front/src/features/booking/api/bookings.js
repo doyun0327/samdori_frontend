@@ -99,12 +99,33 @@ export async function rejectBookingRequest(bookingId, counselorId) {
   return normalizeBooking(booking)
 }
 
-export async function cancelClientBookingRequest(bookingId, clientId) {
+export async function cancelClientBookingRequest(bookingId, clientId, reason) {
   const data = await requestJson(
     `${API_BASE_URL}/api/bookings/${bookingId}/cancel`,
     {
       method: 'PATCH',
-      body: JSON.stringify({ clientId: Number(clientId) }),
+      body: JSON.stringify({
+        clientId: Number(clientId),
+        reason: reason?.trim() ?? '',
+      }),
+    },
+  )
+
+  notifyBookingsUpdated()
+
+  const booking = data?.data ?? data
+  return normalizeBooking(booking)
+}
+
+export async function cancelCounselorBookingRequest(bookingId, counselorId, reason) {
+  const data = await requestJson(
+    `${API_BASE_URL}/api/bookings/${bookingId}/cancel`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({
+        counselorId: Number(counselorId),
+        reason: reason?.trim() ?? '',
+      }),
     },
   )
 

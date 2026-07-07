@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   acceptBookingRequest,
+  cancelCounselorBookingRequest,
   fetchCounselorBookingRequests,
   rejectBookingRequest,
 } from '../../features/booking/api/bookings'
@@ -11,8 +12,10 @@ import {
 import {
   formatBookingSchedule,
   formatRequestedAt,
+  isUpcomingSchedule,
 } from '../../features/booking/formatBooking'
 import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
+import { useAppAlert } from '../../context/AppAlertContext'
 import './BookingRequestList.css'
 
 const REQUEST_FILTER = {
@@ -20,8 +23,19 @@ const REQUEST_FILTER = {
   COMPLETED: 'completed',
 }
 
-function BookingRequestCard({ request, isProcessing, onAccept, onReject }) {
+function BookingRequestCard({
+  request,
+  isProcessing,
+  isCancelling,
+  onAccept,
+  onReject,
+  onCancel,
+}) {
   const isPending = request.status === BOOKING_STATUS.PENDING
+  const canCancel =
+    Boolean(onCancel) &&
+    request.status === BOOKING_STATUS.ACCEPTED &&
+    isUpcomingSchedule(request.date, request.timeSlot)
 
   return (
     <article className="booking-request-card">
@@ -39,6 +53,9 @@ function BookingRequestCard({ request, isProcessing, onAccept, onReject }) {
       </p>
       <p className="booking-request-card__meta">
         요청 {formatRequestedAt(request.requestedAt)}
+        {request.respondedAt &&
+          ` · 처리 ${formatRequestedAt(request.respondedAt)}`}
+        {request.cancelReason && ` · 사유 ${request.cancelReason}`}
       </p>
 
       {isPending && (
@@ -61,6 +78,17 @@ function BookingRequestCard({ request, isProcessing, onAccept, onReject }) {
           </button>
         </div>
       )}
+
+      {canCancel && (
+        <button
+          type="button"
+          className="booking-request-card__cancel"
+          onClick={() => onCancel(request.id)}
+          disabled={isCancelling}
+        >
+          {isCancelling ? '취소 중...' : '취소하기'}
+        </button>
+      )}
     </article>
   )
 }
@@ -70,7 +98,9 @@ export default function BookingRequestList({ counselorId }) {
   const [filter, setFilter] = useState(REQUEST_FILTER.PENDING)
   const [isLoading, setIsLoading] = useState(false)
   const [processingId, setProcessingId] = useState('')
+  const [cancellingId, setCancellingId] = useState('')
   const [message, setMessage] = useState('')
+  const { showCancelReason } = useAppAlert()
 
   const loadRequests = useCallback(async () => {
     // 상담사 ID가 없으면 API 호출 없이 종료
@@ -147,6 +177,26 @@ export default function BookingRequestList({ counselorId }) {
     }
   }
 
+  const handleCancel = async (requestId) => {
+    const reason = await showCancelReason('확정된 예약을 취소하시겠습니까?')
+    if (reason === null) return
+
+    setCancellingId(requestId)
+    setMessage('')
+
+    try {
+      await cancelCounselorBookingRequest(requestId, counselorId, reason)
+      await loadRequests()
+      setMessage('예약이 취소되었습니다.')
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : '예약 취소에 실패했습니다.'
+      setMessage(errorMessage)
+    } finally {
+      setCancellingId('')
+    }
+  }
+
   return (
     <div className="booking-request-list">
       <h1>예약 요청</h1>
@@ -214,8 +264,10 @@ export default function BookingRequestList({ counselorId }) {
               <BookingRequestCard
                 request={request}
                 isProcessing={processingId === request.id}
+                isCancelling={cancellingId === request.id}
                 onAccept={handleAccept}
                 onReject={handleReject}
+                onCancel={handleCancel}
               />
             </li>
           ))}

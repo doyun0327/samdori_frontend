@@ -33,6 +33,8 @@ export function normalizeBooking(raw) {
     requestedAt: raw.requestedAt ?? raw.requested_at,
     respondedAt: raw.respondedAt ?? raw.responded_at ?? null,
     cancelledAt: raw.cancelledAt ?? raw.cancelled_at ?? null,
+    cancelReason: raw.cancelReason ?? raw.cancel_reason ?? null,
+    cancelledBy: raw.cancelledBy ?? raw.cancelled_by ?? null,
   }
 }
 

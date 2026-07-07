@@ -80,7 +80,15 @@ export default function ClientBookingCard({
 
       {booking.status === BOOKING_STATUS.CANCELLED && (
         <p className="client-booking-card__hint client-booking-card__hint--rejected">
-          예약을 취소했습니다.
+          {booking.cancelledBy === 'COUNSELOR'
+            ? '상담사가 예약을 취소했습니다.'
+            : '예약이 취소되었습니다.'}
+          {booking.cancelReason && (
+            <>
+              <br />
+              사유: {booking.cancelReason}
+            </>
+          )}
         </p>
       )}
 

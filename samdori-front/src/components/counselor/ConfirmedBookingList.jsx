@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { fetchCounselorBookingRequests } from '../../features/booking/api/bookings'
+import {
+  cancelCounselorBookingRequest,
+  fetchCounselorBookingRequests,
+} from '../../features/booking/api/bookings'
 import { BOOKING_STATUS } from '../../features/booking/constants'
 import {
   formatScheduleDateHeader,
@@ -7,6 +10,7 @@ import {
   isUpcomingSchedule,
 } from '../../features/booking/formatBooking'
 import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
+import { useAppAlert } from '../../context/AppAlertContext'
 import './CounselorScheduleList.css'
 
 function sortBySchedule(bookings) {
@@ -35,15 +39,25 @@ function groupByDate(bookings) {
   return groups
 }
 
-function ScheduleBookingItem({ booking }) {
+function ScheduleBookingItem({ booking, isCancelling, onCancel }) {
   return (
     <li className="counselor-schedule__item">
       <time className="counselor-schedule__time" dateTime={booking.timeSlot}>
         {formatTimeSlotRange(booking.timeSlot)}
       </time>
-      <div className="counselor-schedule__details">
-        <p className="counselor-schedule__client">{booking.clientName}님</p>
-        <span className="counselor-schedule__status">확정</span>
+      <div className="counselor-schedule__body">
+        <div className="counselor-schedule__details">
+          <p className="counselor-schedule__client">{booking.clientName}님</p>
+          <span className="counselor-schedule__status">확정</span>
+        </div>
+        <button
+          type="button"
+          className="counselor-schedule__cancel"
+          onClick={() => onCancel(booking.id)}
+          disabled={isCancelling}
+        >
+          {isCancelling ? '취소 중...' : '취소하기'}
+        </button>
       </div>
     </li>
   )
@@ -52,7 +66,9 @@ function ScheduleBookingItem({ booking }) {
 export default function ConfirmedBookingList({ counselorId }) {
   const [bookings, setBookings] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [cancellingId, setCancellingId] = useState('')
   const [message, setMessage] = useState('')
+  const { showCancelReason } = useAppAlert()
 
   const loadBookings = useCallback(async () => {
     if (!counselorId) return
@@ -92,6 +108,26 @@ export default function ConfirmedBookingList({ counselorId }) {
     [upcomingSchedules],
   )
 
+  const handleCancel = async (bookingId) => {
+    const reason = await showCancelReason('확정된 상담 일정을 취소하시겠습니까?')
+    if (reason === null) return
+
+    setCancellingId(bookingId)
+    setMessage('')
+
+    try {
+      await cancelCounselorBookingRequest(bookingId, counselorId, reason)
+      await loadBookings()
+      setMessage('상담 일정이 취소되었습니다.')
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : '일정 취소에 실패했습니다.'
+      setMessage(errorMessage)
+    } finally {
+      setCancellingId('')
+    }
+  }
+
   return (
     <div className="counselor-schedule">
       <div className="counselor-schedule__header">
@@ -129,7 +165,12 @@ export default function ConfirmedBookingList({ counselorId }) {
               </h2>
               <ul className="counselor-schedule__items">
                 {group.bookings.map((booking) => (
-                  <ScheduleBookingItem key={booking.id} booking={booking} />
+                  <ScheduleBookingItem
+                    key={booking.id}
+                    booking={booking}
+                    isCancelling={cancellingId === booking.id}
+                    onCancel={handleCancel}
+                  />
                 ))}
               </ul>
             </section>

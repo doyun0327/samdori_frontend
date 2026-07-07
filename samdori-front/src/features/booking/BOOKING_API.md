@@ -20,7 +20,9 @@ Base URL: `{API_BASE_URL}/api/bookings`
   "status": "PENDING",
   "requestedAt": "2026-06-19T09:30:00",
   "respondedAt": null,
-  "cancelledAt": null
+  "cancelledAt": null,
+  "cancelReason": null,
+  "cancelledBy": null
 }
 ```
 
@@ -31,7 +33,7 @@ Base URL: `{API_BASE_URL}/api/bookings`
 | `PENDING` | 승인 대기 |
 | `ACCEPTED` | 상담사 수락 |
 | `REJECTED` | 상담사 거절 |
-| `CANCELLED` | 내담자 취소 |
+| `CANCELLED` | 취소됨 (내담자 또는 상담사) |
 
 스네이크 케이스(`client_id`, `time_slot` 등)로 내려줘도 프론트에서 변환합니다.
 
@@ -138,26 +140,40 @@ HTTP 4xx/5xx 또는 `success: false` 시 프론트는 `message`를 사용자에�
 
 ---
 
-## 6. 예약 취소 (내담자)
+## 6. 예약 취소 (내담자 / 상담사)
 
 **PATCH** `/api/bookings/{bookingId}/cancel`
 
-### Request Body
+### Request Body (내담자)
 
 ```json
 {
-  "clientId": 10
+  "clientId": 10,
+  "reason": "일정이 변경되었습니다."
 }
 ```
 
+### Request Body (상담사)
+
+```json
+{
+  "counselorId": 3,
+  "reason": "개인 사정으로 취소합니다."
+}
+```
+
+`clientId` 또는 `counselorId` 중 하나만 보냅니다. `reason`은 필수(공백 불가)입니다.
+
 ### Response
 
-- 갱신된 Booking 객체
+- 갱신된 Booking 객체 (`status: CANCELLED`, `cancelReason`, `cancelledAt`, `cancelledBy` 포함 권장)
 
 ### 백엔드 검증
 
-- `status === PENDING` 일 때만 (수락 후 취소 불가)
-- 요청의 `clientId`와 body의 `clientId` 일치
+- `status`가 `PENDING` 또는 `ACCEPTED` 일 때만
+- 아직 지나지 않은 일정(`date` + `timeSlot` 종료 시각 > now)일 때만
+- 요청의 `clientId` / `counselorId`와 body 값 일치
+- 취소 시 상대방에게 푸시 알림 발송 권장
 
 ---
 
@@ -173,7 +189,9 @@ bookings (
   status        VARCHAR(20) NOT NULL,
   requested_at  TIMESTAMP NOT NULL,
   responded_at  TIMESTAMP NULL,
-  cancelled_at  TIMESTAMP NULL
+  cancelled_at  TIMESTAMP NULL,
+  cancel_reason VARCHAR(500) NULL,
+  cancelled_by  VARCHAR(20) NULL
 )
 ```
 
