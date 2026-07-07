@@ -1,10 +1,20 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import AvailabilityCalendar from '../../components/counselor/AvailabilityCalendar'
 import TimeSlotPicker from '../../components/counselor/TimeSlotPicker'
+import { useAppAlert } from '../../context/AppAlertContext'
 import { fetchCounselors } from '../../features/client/api/counselors'
 import { fetchAvailability } from '../../features/counselor/api/availability'
-import { createBookingRequest } from '../../features/booking/api/bookings'
+import {
+  createBookingRequest,
+  fetchCounselorBookingRequests,
+} from '../../features/booking/api/bookings'
+import { getBlockedTimeSlots } from '../../features/booking/bookingUtils'
+import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
 import { formatBookingSchedule } from '../../features/booking/formatBooking'
+import {
+  getFavoriteCounselorId,
+  setFavoriteCounselorId as persistFavoriteCounselorId,
+} from '../../utils/favoriteCounselor'
 
 export default function ClientBookingSection({
   clientName,
@@ -16,12 +26,17 @@ export default function ClientBookingSection({
   const [searchQuery, setSearchQuery] = useState('') // 상담사 검색 입력값
   const [isSearchOpen, setIsSearchOpen] = useState(false) // 상담사 검색 결과 드롭다운 표시 여부
   const [availableSlots, setAvailableSlots] = useState([]) // 선택한 상담사의 예약 가능 슬롯 목록
+  const [counselorBookings, setCounselorBookings] = useState([])
   const [selectedDate, setSelectedDate] = useState('') // 예약할 날짜 (YYYY-MM-DD)
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('') // 예약할 시간대
   const [message, setMessage] = useState('') // 안내·에러·예약 확인 메시지
   const [isLoadingCounselors, setIsLoadingCounselors] = useState(false) // 상담사 목록 로딩 중 여부
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false) // 상담 가능 시간 로딩 중 여부
   const [isSubmitting, setIsSubmitting] = useState(false) // 예약 요청 전송 중 여부
+  const [favoriteCounselorId, setFavoriteCounselorId] = useState(() =>
+    getFavoriteCounselorId(clientId),
+  )
+  const { showAlert, showConfirm } = useAppAlert()
 
   const openedDates = useMemo(
     () => [...new Set(availableSlots.map((slot) => slot.date))].sort(),
@@ -36,14 +51,34 @@ export default function ClientBookingSection({
     [availableSlots, selectedDate],
   )
 
+  const blockedSlotsOnDate = useMemo(
+    () => getBlockedTimeSlots(counselorBookings, selectedDate),
+    [counselorBookings, selectedDate],
+  )
+
   const filteredCounselors = useMemo(() => {
     const keyword = searchQuery.trim().toLowerCase()
-    if (!keyword) return counselors
+    const list = keyword
+      ? counselors.filter((counselor) =>
+          counselor.name.toLowerCase().includes(keyword),
+        )
+      : counselors
 
-    return counselors.filter((counselor) =>
-      counselor.name.toLowerCase().includes(keyword),
+    if (!favoriteCounselorId) return list
+
+    const favorite = list.find(
+      (counselor) => String(counselor.id) === favoriteCounselorId,
     )
-  }, [counselors, searchQuery])
+    const rest = list.filter(
+      (counselor) => String(counselor.id) !== favoriteCounselorId,
+    )
+
+    return favorite ? [favorite, ...rest] : list
+  }, [counselors, favoriteCounselorId, searchQuery])
+
+  useEffect(() => {
+    setFavoriteCounselorId(getFavoriteCounselorId(clientId))
+  }, [clientId])
 
   useEffect(() => {
     let cancelled = false
@@ -54,12 +89,29 @@ export default function ClientBookingSection({
 
       try {
         const list = await fetchCounselors()
-        if (!cancelled) {
-          setCounselors(list)
-          if (list.length === 1) {
-            setSelectedCounselorId(String(list[0].id))
-            setSearchQuery(list[0].name)
-          }
+        if (cancelled) return
+
+        setCounselors(list)
+
+        const savedFavoriteId = getFavoriteCounselorId(clientId)
+        const favorite = list.find(
+          (counselor) => String(counselor.id) === savedFavoriteId,
+        )
+
+        if (favorite) {
+          setSelectedCounselorId(String(favorite.id))
+          setSearchQuery(favorite.name)
+          return
+        }
+
+        if (savedFavoriteId) {
+          persistFavoriteCounselorId(clientId, null)
+          setFavoriteCounselorId(null)
+        }
+
+        if (list.length === 1) {
+          setSelectedCounselorId(String(list[0].id))
+          setSearchQuery(list[0].name)
         }
       } catch (error) {
         if (!cancelled) {
@@ -81,48 +133,45 @@ export default function ClientBookingSection({
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [clientId])
 
-  useEffect(() => {
+  const loadCounselorAvailability = useCallback(async () => {
     if (!selectedCounselorId) {
       setAvailableSlots([])
-      return undefined
+      setCounselorBookings([])
+      return
     }
 
-    let cancelled = false
+    setIsLoadingAvailability(true)
+    setMessage('')
+    setSelectedDate('')
+    setSelectedTimeSlot('')
 
-    async function loadAvailability() {
-      setIsLoadingAvailability(true)
-      setMessage('')
-      setSelectedDate('')
-      setSelectedTimeSlot('')
-
-      try {
-        const slots = await fetchAvailability(Number(selectedCounselorId))
-        if (!cancelled) {
-          setAvailableSlots(slots)
-        }
-      } catch (error) {
-        if (!cancelled) {
-          const errorMessage =
-            error instanceof Error
-              ? error.message
-              : '상담 가능 시간을 불러오지 못했습니다.'
-          setMessage(errorMessage)
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingAvailability(false)
-        }
-      }
-    }
-
-    loadAvailability()
-
-    return () => {
-      cancelled = true
+    try {
+      const [slots, bookings] = await Promise.all([
+        fetchAvailability(Number(selectedCounselorId)),
+        fetchCounselorBookingRequests(Number(selectedCounselorId)).catch(
+          () => [],
+        ),
+      ])
+      setAvailableSlots(slots)
+      setCounselorBookings(bookings)
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : '상담 가능 시간을 불러오지 못했습니다.'
+      setMessage(errorMessage)
+    } finally {
+      setIsLoadingAvailability(false)
     }
   }, [selectedCounselorId])
+
+  useEffect(() => {
+    loadCounselorAvailability()
+  }, [loadCounselorAvailability])
+
+  useBookingsUpdatedListener(loadCounselorAvailability)
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value)
@@ -146,6 +195,31 @@ export default function ClientBookingSection({
     setMessage('')
   }
 
+  const handleToggleFavorite = async (counselor, event) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const counselorId = String(counselor.id)
+
+    if (favoriteCounselorId === counselorId) {
+      persistFavoriteCounselorId(clientId, null)
+      setFavoriteCounselorId(null)
+      return
+    }
+
+    if (favoriteCounselorId) {
+      const confirmed = await showConfirm(
+        '즐겨찾기는 한명만 설정이 가능합니다.\n변경하시겠습니까?',
+      )
+      if (!confirmed) return
+    }
+
+    persistFavoriteCounselorId(clientId, counselorId)
+    setFavoriteCounselorId(counselorId)
+    handleSelectCounselor(counselor)
+    await showAlert('즐겨찾기에 등록되었습니다.')
+  }
+
   const handleDateChange = (date) => {
     setSelectedDate(date)
     setSelectedTimeSlot('')
@@ -153,6 +227,8 @@ export default function ClientBookingSection({
   }
 
   const handleSelectTimeSlot = (timeSlot) => {
+    if (blockedSlotsOnDate.includes(timeSlot)) return
+
     setSelectedTimeSlot(timeSlot)
     setMessage('')
   }
@@ -170,6 +246,11 @@ export default function ClientBookingSection({
 
     if (!selectedTimeSlot) {
       setMessage('예약할 시간을 선택해 주세요.')
+      return
+    }
+
+    if (blockedSlotsOnDate.includes(selectedTimeSlot)) {
+      setMessage('이미 예약 요청 또는 확정된 시간입니다.')
       return
     }
 
@@ -206,8 +287,8 @@ export default function ClientBookingSection({
     <>
       <h1>{clientName}님, 상담을 예약해 보세요</h1>
       <p className="reservation-page__description">
-        상담사 이름을 검색해 선택한 뒤, 열려 있는 날짜와 시간만 예약할 수
-        있습니다.
+        상담사를 검색해 선택하거나 즐겨찾기로 등록해 주세요. 즐겨찾기한
+        상담사가 다음 예약 시 자동으로 선택됩니다.
       </p>
 
       <div className="client-booking__field">
@@ -235,20 +316,43 @@ export default function ClientBookingSection({
           {isSearchOpen && !isLoadingCounselors && counselors.length > 0 && (
             <ul className="client-booking__search-results" role="listbox">
               {filteredCounselors.length > 0 ? (
-                filteredCounselors.map((counselor) => (
-                  <li key={counselor.id}>
-                    <button
-                      type="button"
-                      className="client-booking__search-option"
-                      role="option"
-                      aria-selected={String(counselor.id) === selectedCounselorId}
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => handleSelectCounselor(counselor)}
-                    >
-                      {`${counselor.name} (${counselor.centerName})`}
-                    </button>
-                  </li>
-                ))
+                filteredCounselors.map((counselor) => {
+                  const isFavorite =
+                    String(counselor.id) === favoriteCounselorId
+
+                  return (
+                    <li key={counselor.id} className="client-booking__search-item">
+                      <button
+                        type="button"
+                        className={`client-booking__favorite${
+                          isFavorite ? ' client-booking__favorite--active' : ''
+                        }`}
+                        aria-label={
+                          isFavorite
+                            ? `${counselor.name} 즐겨찾기 해제`
+                            : `${counselor.name} 즐겨찾기 등록`
+                        }
+                        aria-pressed={isFavorite}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={(event) => handleToggleFavorite(counselor, event)}
+                      >
+                        {isFavorite ? '★' : '☆'}
+                      </button>
+                      <button
+                        type="button"
+                        className="client-booking__search-option"
+                        role="option"
+                        aria-selected={
+                          String(counselor.id) === selectedCounselorId
+                        }
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => handleSelectCounselor(counselor)}
+                      >
+                        {`${counselor.name} (${counselor.centerName})`}
+                      </button>
+                    </li>
+                  )
+                })
               ) : (
                 <li className="client-booking__search-empty">
                   검색 결과가 없습니다.
@@ -289,6 +393,7 @@ export default function ClientBookingSection({
                       mode="book"
                       selectedSlots={selectedTimeSlot ? [selectedTimeSlot] : []}
                       availableSlots={availableSlotsOnDate}
+                      blockedSlots={blockedSlotsOnDate}
                       disabled={isLoadingAvailability}
                       onToggle={handleSelectTimeSlot}
                     />

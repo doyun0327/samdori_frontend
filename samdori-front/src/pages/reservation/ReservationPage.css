@@ -223,8 +223,36 @@
   box-shadow: 0 12px 28px rgba(30, 43, 43, 0.1);
 }
 
+.client-booking__search-item {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.client-booking__favorite {
+  flex-shrink: 0;
+  width: 44px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #c4a35a;
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.client-booking__favorite:hover,
+.client-booking__favorite--active {
+  background: rgba(212, 165, 116, 0.16);
+}
+
 .client-booking__search-option {
-  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
   padding: 12px 14px;
   border: none;
   border-radius: 8px;
@@ -234,6 +262,16 @@
   font-size: 0.9375rem;
   text-align: left;
   cursor: pointer;
+}
+
+.client-booking__favorite-label {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(212, 165, 116, 0.18);
+  color: #9a6530;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .client-booking__search-option:hover,

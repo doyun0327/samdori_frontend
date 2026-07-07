@@ -28,7 +28,7 @@ export default function UserNavBar({
               </span>
             </button>
           )}
-          <p className="user-nav__brand">상담 예약</p>
+          <p className="user-nav__brand"></p>
         </div>
 
         <div className="user-nav__menu">

@@ -1,10 +1,13 @@
 import { BrowserRouter } from 'react-router-dom'
 import AppRoutes from './routes/AppRoutes'
+import { AppAlertProvider } from './context/AppAlertContext'
 
 function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AppAlertProvider>
+        <AppRoutes />
+      </AppAlertProvider>
     </BrowserRouter>
   )
 }

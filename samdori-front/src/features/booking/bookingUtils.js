@@ -2,6 +2,19 @@ import { BOOKING_STATUS } from './constants'
 
 export const BOOKINGS_UPDATED_EVENT = 'samdori-bookings-updated'
 
+export function isActiveBookingStatus(status) {
+  return (
+    status === BOOKING_STATUS.PENDING || status === BOOKING_STATUS.ACCEPTED
+  )
+}
+
+export function getBlockedTimeSlots(bookings, date) {
+  return bookings
+    .filter((booking) => isActiveBookingStatus(booking.status))
+    .filter((booking) => !date || booking.date === date)
+    .map((booking) => booking.timeSlot)
+}
+
 export function countPendingBookings(bookings) {
   return bookings.filter((booking) => booking.status === BOOKING_STATUS.PENDING)
     .length

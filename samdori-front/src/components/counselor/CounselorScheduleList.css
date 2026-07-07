@@ -1,0 +1,112 @@
+.counselor-schedule h1 {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+  line-height: 1.35;
+  color: var(--reservation-text);
+}
+
+.counselor-schedule__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.counselor-schedule__summary {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--reservation-primary-soft, rgba(45, 106, 106, 0.12));
+  color: var(--reservation-primary-dark, #245656);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.counselor-schedule__summary strong {
+  font-size: 1rem;
+}
+
+.counselor-schedule__days {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.counselor-schedule__day {
+  padding: 16px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 16px;
+  background: #fafcfc;
+}
+
+.counselor-schedule__date {
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--reservation-border, #d7e4e1);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--reservation-primary-dark, #245656);
+}
+
+.counselor-schedule__items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.counselor-schedule__item {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(45, 106, 106, 0.08);
+}
+
+.counselor-schedule__time {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--reservation-text, #1e2b2b);
+}
+
+.counselor-schedule__details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.counselor-schedule__client {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--reservation-text, #1e2b2b);
+}
+
+.counselor-schedule__status {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--reservation-primary-soft, rgba(45, 106, 106, 0.12));
+  color: var(--reservation-primary-dark, #245656);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .counselor-schedule h1 {
+    font-size: 1.75rem;
+  }
+
+  .counselor-schedule__item {
+    grid-template-columns: 140px 1fr;
+  }
+}

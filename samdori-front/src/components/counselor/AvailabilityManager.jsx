@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import AvailabilityCalendar from './AvailabilityCalendar'
 import TimeSlotPicker from './TimeSlotPicker'
 import {
@@ -6,6 +6,9 @@ import {
   deleteAvailability,
   fetchAvailability,
 } from '../../features/counselor/api/availability'
+import { fetchCounselorBookingRequests } from '../../features/booking/api/bookings'
+import { getBlockedTimeSlots } from '../../features/booking/bookingUtils'
+import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
 import './AvailabilityManager.css'
 
 const AVAILABILITY_MODE = {
@@ -18,6 +21,7 @@ export default function AvailabilityManager({ counselorId }) {
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([])
   const [registeredSlots, setRegisteredSlots] = useState([])
+  const [counselorBookings, setCounselorBookings] = useState([])
   const [confirmMessage, setConfirmMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false)
@@ -36,42 +40,40 @@ export default function AvailabilityManager({ counselorId }) {
   )
 
   const hasRegisteredSlotsOnDate = registeredSlotsOnDate.length > 0
+  const blockedSlotsOnDate = useMemo(
+    () => getBlockedTimeSlots(counselorBookings, selectedDate),
+    [counselorBookings, selectedDate],
+  )
   const isRegisterMode = mode === AVAILABILITY_MODE.REGISTER
 
-  useEffect(() => {
-    if (!counselorId) return undefined
+  const loadCounselorData = useCallback(async () => {
+    if (!counselorId) return
 
-    let cancelled = false
+    setIsLoadingAvailability(true)
 
-    async function loadAvailability() {
-      setIsLoadingAvailability(true)
-
-      try {
-        const slots = await fetchAvailability(Number(counselorId))
-        if (!cancelled) {
-          setRegisteredSlots(slots)
-        }
-      } catch (error) {
-        if (!cancelled) {
-          const message =
-            error instanceof Error
-              ? error.message
-              : '상담 가능 시간을 불러오지 못했습니다.'
-          setConfirmMessage(message)
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingAvailability(false)
-        }
-      }
-    }
-
-    loadAvailability()
-
-    return () => {
-      cancelled = true
+    try {
+      const [slots, bookings] = await Promise.all([
+        fetchAvailability(Number(counselorId)),
+        fetchCounselorBookingRequests(Number(counselorId)),
+      ])
+      setRegisteredSlots(slots)
+      setCounselorBookings(bookings)
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : '상담 가능 시간을 불러오지 못했습니다.'
+      setConfirmMessage(message)
+    } finally {
+      setIsLoadingAvailability(false)
     }
   }, [counselorId])
+
+  useEffect(() => {
+    loadCounselorData()
+  }, [loadCounselorData])
+
+  useBookingsUpdatedListener(loadCounselorData)
 
   const handleModeChange = (nextMode) => {
     setMode(nextMode)
@@ -86,6 +88,8 @@ export default function AvailabilityManager({ counselorId }) {
   }
 
   const handleToggleTimeSlot = (timeSlot) => {
+    if (blockedSlotsOnDate.includes(timeSlot)) return
+
     setSelectedTimeSlots((prev) => {
       if (prev.includes(timeSlot)) {
         return prev.filter((slot) => slot !== timeSlot)
@@ -115,6 +119,15 @@ export default function AvailabilityManager({ counselorId }) {
       return
     }
 
+    const removableSlots = selectedTimeSlots.filter(
+      (timeSlot) => !blockedSlotsOnDate.includes(timeSlot),
+    )
+
+    if (!isRegisterMode && removableSlots.length === 0) {
+      setConfirmMessage('예약 요청 또는 확정된 시간은 해제할 수 없습니다.')
+      return
+    }
+
     setIsSubmitting(true)
     setConfirmMessage('')
 
@@ -123,7 +136,7 @@ export default function AvailabilityManager({ counselorId }) {
       date: selectedDate,
       timeSlots: isRegisterMode
         ? [...new Set([...registeredSlotsOnDate, ...selectedTimeSlots])].sort()
-        : selectedTimeSlots,
+        : removableSlots,
     }
 
     try {
@@ -232,6 +245,7 @@ export default function AvailabilityManager({ counselorId }) {
               mode={mode}
               selectedSlots={selectedTimeSlots}
               registeredSlots={registeredSlotsOnDate}
+              blockedSlots={blockedSlotsOnDate}
               disabled={isSubmitting || isLoadingAvailability}
               onToggle={handleToggleTimeSlot}
             />

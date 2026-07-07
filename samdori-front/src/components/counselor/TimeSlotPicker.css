@@ -87,6 +87,12 @@
   color: var(--reservation-primary-dark, #245656);
 }
 
+.time-slot-picker__option--blocked {
+  border-color: #d7dce1;
+  background: #f3f4f6;
+  color: #8b9499;
+}
+
 .time-slot-picker__option--inactive {
   opacity: 0.45;
   cursor: not-allowed;

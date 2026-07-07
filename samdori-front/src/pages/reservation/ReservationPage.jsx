@@ -9,6 +9,7 @@ import ClientSection, {
   CLIENT_SECTION,
 } from '../../components/client/ClientSection'
 import {
+  COUNSELOR_BOOKINGS_PATH,
   COUNSELOR_REQUESTS_PATH,
   RESERVATION_PATH,
 } from '../../routes/paths'
@@ -16,7 +17,10 @@ import {
   fetchClientBookingRequests,
   fetchCounselorPendingCount,
 } from '../../features/booking/api/bookings'
-import { getClientUnreadResponseCount } from '../../features/booking/clientBookingNotifications'
+import {
+  getClientUnreadResponseCount,
+  markClientResponsesAsRead,
+} from '../../features/booking/clientBookingNotifications'
 import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
 import {
   clearAuthSession,
@@ -38,10 +42,15 @@ export default function ReservationPage() {
   const { name, role, id } = getAuthSession()
   const counselor = isCounselor(role)
 
-  const counselorSection =
-    location.pathname === COUNSELOR_REQUESTS_PATH
-      ? COUNSELOR_SECTION.REQUESTS
-      : COUNSELOR_SECTION.AVAILABILITY
+  const counselorSection = (() => {
+    if (location.pathname === COUNSELOR_REQUESTS_PATH) {
+      return COUNSELOR_SECTION.REQUESTS
+    }
+    if (location.pathname === COUNSELOR_BOOKINGS_PATH) {
+      return COUNSELOR_SECTION.BOOKINGS
+    }
+    return COUNSELOR_SECTION.AVAILABILITY
+  })()
 
   const [clientSection, setClientSection] = useState(CLIENT_SECTION.BOOK)
   const [notificationCount, setNotificationCount] = useState(0)
@@ -81,7 +90,7 @@ export default function ReservationPage() {
     [id, loadNotificationCount, role],
   )
 
-  // 상담사 메뉴 URL: /reservation(시간 관리), /reservation/requests(예약 요청)
+  // 상담사 메뉴 URL: /reservation, /reservation/requests, /reservation/bookings
   const { disconnect: disconnectStream } = useNotificationStream({
     userId: id,
     role,
@@ -143,6 +152,11 @@ export default function ReservationPage() {
         path: COUNSELOR_REQUESTS_PATH,
         badge: notificationCount,
       },
+      {
+        id: COUNSELOR_SECTION.BOOKINGS,
+        label: '상담 스케줄',
+        path: COUNSELOR_BOOKINGS_PATH,
+      },
     ],
     [notificationCount],
   )
@@ -154,13 +168,24 @@ export default function ReservationPage() {
     navigate('/', { replace: true, state: { fromLogout: true } })
   }
 
-  const handleNotificationClick = () => {
+  const handleNotificationClick = async () => {
     if (counselor) {
       navigate(COUNSELOR_REQUESTS_PATH)
       return
     }
 
     setClientSection(CLIENT_SECTION.LIST)
+
+    if (!id) return
+
+    try {
+      const bookings = await fetchClientBookingRequests(id)
+      markClientResponsesAsRead(id, bookings)
+    } catch {
+      // 읽음 처리 실패해도 탭 이동은 유지
+    } finally {
+      loadNotificationCount()
+    }
   }
 
   const handleCounselorNavSelect = (item) => {
@@ -172,7 +197,11 @@ export default function ReservationPage() {
     return <Navigate to="/" replace />
   }
 
-  if (!counselor && location.pathname === COUNSELOR_REQUESTS_PATH) {
+  if (
+    !counselor &&
+    (location.pathname === COUNSELOR_REQUESTS_PATH ||
+      location.pathname === COUNSELOR_BOOKINGS_PATH)
+  ) {
     return <Navigate to={RESERVATION_PATH} replace />
   }
 

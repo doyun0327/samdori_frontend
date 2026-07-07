@@ -27,6 +27,7 @@ function TimeSlotSection({
   disabled,
   registeredSlots,
   availableSlots = [],
+  blockedSlots = [],
   mode,
 }) {
   return (
@@ -36,13 +37,14 @@ function TimeSlotSection({
         {slots.map((slot) => {
           const isRegistered = registeredSlots.includes(slot.value)
           const isAvailable = availableSlots.includes(slot.value)
+          const isBlocked = blockedSlots.includes(slot.value)
           const isSelected = selectedSlots.includes(slot.value)
           const isSelectable =
             mode === 'book'
-              ? isAvailable
+              ? isAvailable && !isBlocked
               : mode === 'register'
                 ? !isRegistered
-                : isRegistered
+                : isRegistered && !isBlocked
 
           return (
             <label
@@ -53,7 +55,9 @@ function TimeSlotSection({
                   : ''
               }${isRegistered && mode !== 'book'
                   ? ' time-slot-picker__option--registered'
-                  : ''}${!isSelectable ? ' time-slot-picker__option--inactive' : ''}${
+                  : ''}${isBlocked ? ' time-slot-picker__option--blocked' : ''}${
+                !isSelectable ? ' time-slot-picker__option--inactive' : ''
+              }${
                 mode === 'unregister' && isSelected
                   ? ' time-slot-picker__option--remove-selected'
                   : ''
@@ -83,6 +87,7 @@ export default function TimeSlotPicker({
   disabled,
   registeredSlots = [],
   availableSlots = [],
+  blockedSlots = [],
 }) {
   return (
     <div className="time-slot-picker">
@@ -96,6 +101,7 @@ export default function TimeSlotPicker({
         disabled={disabled}
         registeredSlots={registeredSlots}
         availableSlots={availableSlots}
+        blockedSlots={blockedSlots}
         mode={mode}
       />
 
@@ -107,6 +113,7 @@ export default function TimeSlotPicker({
         disabled={disabled}
         registeredSlots={registeredSlots}
         availableSlots={availableSlots}
+        blockedSlots={blockedSlots}
         mode={mode}
       />
     </div>

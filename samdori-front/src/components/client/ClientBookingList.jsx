@@ -1,84 +1,37 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   cancelClientBookingRequest,
   fetchClientBookingRequests,
 } from '../../features/booking/api/bookings'
-import {
-  BOOKING_STATUS,
-  BOOKING_STATUS_LABEL,
-} from '../../features/booking/constants'
-import {
-  formatBookingSchedule,
-  formatRequestedAt,
-} from '../../features/booking/formatBooking'
+import { BOOKING_STATUS } from '../../features/booking/constants'
+import { isUpcomingSchedule } from '../../features/booking/formatBooking'
 import { countPendingBookings } from '../../features/booking/bookingUtils'
 import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
+import { useAppAlert } from '../../context/AppAlertContext'
+import ClientBookingCard from './ClientBookingCard'
+import PastBookingsSheet from './PastBookingsSheet'
 import './ClientBookingList.css'
 
-function ClientBookingCard({ booking, isCancelling, onCancel }) {
-  const canCancel = booking.status === BOOKING_STATUS.PENDING
+function isUpcomingBooking(booking) {
+  if (
+    booking.status === BOOKING_STATUS.REJECTED ||
+    booking.status === BOOKING_STATUS.CANCELLED
+  ) {
+    return false
+  }
 
-  return (
-    <article className="client-booking-card">
-      <div className="client-booking-card__header">
-        <p className="client-booking-card__counselor">
-          {booking.counselorName ?? '상담사'}
-        </p>
-        <span
-          className={`client-booking-card__status client-booking-card__status--${booking.status.toLowerCase()}`}
-        >
-          {BOOKING_STATUS_LABEL[booking.status]}
-        </span>
-      </div>
+  return isUpcomingSchedule(booking.date, booking.timeSlot)
+}
 
-      <p className="client-booking-card__schedule">
-        {formatBookingSchedule(booking.date, booking.timeSlot)}
-      </p>
+function sortByScheduleAsc(a, b) {
+  const dateCompare = a.date.localeCompare(b.date)
+  if (dateCompare !== 0) return dateCompare
 
-      <p className="client-booking-card__meta">
-        요청 {formatRequestedAt(booking.requestedAt)}
-        {booking.respondedAt &&
-          ` · 처리 ${formatRequestedAt(booking.respondedAt)}`}
-        {booking.cancelledAt &&
-          ` · 취소 ${formatRequestedAt(booking.cancelledAt)}`}
-      </p>
+  return (a.timeSlot ?? '').localeCompare(b.timeSlot ?? '')
+}
 
-      {booking.status === BOOKING_STATUS.PENDING && (
-        <p className="client-booking-card__hint">
-          상담사 승인을 기다리는 중입니다.
-        </p>
-      )}
-
-      {booking.status === BOOKING_STATUS.ACCEPTED && (
-        <p className="client-booking-card__hint client-booking-card__hint--accepted">
-          예약이 확정되었습니다.
-        </p>
-      )}
-
-      {booking.status === BOOKING_STATUS.REJECTED && (
-        <p className="client-booking-card__hint client-booking-card__hint--rejected">
-          상담사가 예약을 거절했습니다. 다른 시간을 선택해 주세요.
-        </p>
-      )}
-
-      {booking.status === BOOKING_STATUS.CANCELLED && (
-        <p className="client-booking-card__hint client-booking-card__hint--rejected">
-          예약을 취소했습니다.
-        </p>
-      )}
-
-      {canCancel && (
-        <button
-          type="button"
-          className="client-booking-card__cancel"
-          onClick={() => onCancel(booking.id)}
-          disabled={isCancelling}
-        >
-          {isCancelling ? '취소 중...' : '예약 취소'}
-        </button>
-      )}
-    </article>
-  )
+function sortByScheduleDesc(a, b) {
+  return sortByScheduleAsc(b, a)
 }
 
 export default function ClientBookingList({ clientId, onPendingCountChange }) {
@@ -86,6 +39,8 @@ export default function ClientBookingList({ clientId, onPendingCountChange }) {
   const [isLoading, setIsLoading] = useState(false)
   const [cancellingId, setCancellingId] = useState('')
   const [message, setMessage] = useState('')
+  const [isPastModalOpen, setIsPastModalOpen] = useState(false)
+  const { showConfirm } = useAppAlert()
 
   const loadBookings = useCallback(async () => {
     if (!clientId) {
@@ -114,8 +69,27 @@ export default function ClientBookingList({ clientId, onPendingCountChange }) {
 
   useBookingsUpdatedListener(loadBookings)
 
+  const { upcomingBookings, pastBookings } = useMemo(() => {
+    const upcoming = []
+    const past = []
+
+    bookings.forEach((booking) => {
+      if (isUpcomingBooking(booking)) {
+        upcoming.push(booking)
+        return
+      }
+
+      past.push(booking)
+    })
+
+    return {
+      upcomingBookings: [...upcoming].sort(sortByScheduleAsc),
+      pastBookings: [...past].sort(sortByScheduleDesc),
+    }
+  }, [bookings])
+
   const handleCancel = async (bookingId) => {
-    const confirmed = window.confirm('이 예약을 취소하시겠습니까?')
+    const confirmed = await showConfirm('예약을 취소하시겠습니까?')
     if (!confirmed) return
 
     setCancellingId(bookingId)
@@ -152,17 +126,55 @@ export default function ClientBookingList({ clientId, onPendingCountChange }) {
 
   return (
     <>
-      <ul className="client-booking-list">
-        {bookings.map((booking) => (
-          <li key={booking.id}>
-            <ClientBookingCard
-              booking={booking}
-              isCancelling={cancellingId === booking.id}
-              onCancel={handleCancel}
-            />
-          </li>
-        ))}
-      </ul>
+      <section className="client-booking-upcoming">
+        <div className="client-booking-upcoming__header">
+          <h2 className="client-booking-upcoming__title">남은 상담</h2>
+          {upcomingBookings.length > 0 && (
+            <span className="client-booking-upcoming__count">
+              {upcomingBookings.length}건
+            </span>
+          )}
+        </div>
+
+        {upcomingBookings.length === 0 ? (
+          <p className="client-booking-upcoming__empty" role="status">
+            남은 상담 일정이 없습니다.
+          </p>
+        ) : (
+          <ul className="client-booking-list">
+            {upcomingBookings.map((booking) => (
+              <li key={booking.id}>
+                <ClientBookingCard
+                  booking={booking}
+                  isUpcoming
+                  isCancelling={cancellingId === booking.id}
+                  onCancel={handleCancel}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {pastBookings.length > 0 && (
+        <button
+          type="button"
+          className="client-booking-past-link"
+          onClick={() => setIsPastModalOpen(true)}
+        >
+          <span>지난 상담 {pastBookings.length}건 보기</span>
+          <span className="client-booking-past-link__arrow" aria-hidden="true">
+            ›
+          </span>
+        </button>
+      )}
+
+      {isPastModalOpen && (
+        <PastBookingsSheet
+          bookings={pastBookings}
+          onClose={() => setIsPastModalOpen(false)}
+        />
+      )}
 
       {message && (
         <p className="reservation-page__message" role="status">

@@ -1,0 +1,74 @@
+.past-bookings-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(30, 43, 43, 0.42);
+  backdrop-filter: blur(4px);
+}
+
+.past-bookings-sheet__panel {
+  display: flex;
+  flex-direction: column;
+  width: min(480px, 100%);
+  max-height: min(80vh, 720px);
+  border-radius: 20px 20px 0 0;
+  background: #fff;
+  box-shadow: 0 -12px 40px rgba(30, 43, 43, 0.16);
+  animation: past-bookings-sheet-enter 0.24s ease;
+}
+
+.past-bookings-sheet__header {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--reservation-border, #d7e4e1);
+}
+
+.past-bookings-sheet__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--reservation-primary-dark, #245656);
+}
+
+.past-bookings-sheet__count {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eef1f0;
+  color: var(--reservation-muted, #6b7b7b);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.past-bookings-sheet__close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: #f5f7f6;
+  color: var(--reservation-muted, #6b7b7b);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.past-bookings-sheet__body {
+  overflow-y: auto;
+  padding: 16px 20px 24px;
+}
+
+@keyframes past-bookings-sheet-enter {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
