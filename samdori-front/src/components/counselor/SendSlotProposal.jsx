@@ -7,9 +7,22 @@ import { isFutureTimeSlot } from '../../features/booking/formatBooking'
 import { searchClients } from '../../features/client/api/clients'
 import { formatClientLabel } from '../../features/client/clientUtils'
 import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
-import { createSlotProposal } from '../../features/slotProposal/api/slotProposals'
+import {
+  createSlotProposal,
+  fetchCounselorSlotProposals,
+} from '../../features/slotProposal/api/slotProposals'
+import {
+  getBlockedTimeSlotsFromProposals,
+  mergeProposalUpdate,
+} from '../../features/slotProposal/slotProposalUtils'
 import { useSlotProposalsUpdatedListener } from '../../features/slotProposal/hooks/useSlotProposalsUpdatedListener'
 import { useAppAlert } from '../../context/AppAlertContext'
+import {
+  addFavoriteClient,
+  getFavoriteClients,
+  isFavoriteClient,
+  removeFavoriteClient,
+} from '../../utils/favoriteClient'
 import './SendSlotProposal.css'
 
 export default function SendSlotProposal({ counselorId }) {
@@ -23,24 +36,39 @@ export default function SendSlotProposal({ counselorId }) {
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([])
   const [counselorBookings, setCounselorBookings] = useState([])
+  const [counselorProposals, setCounselorProposals] = useState([])
   const [statusMessage, setStatusMessage] = useState('')
   const [isLoadingBookings, setIsLoadingBookings] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [favoriteClients, setFavoriteClients] = useState(() =>
+    getFavoriteClients(counselorId),
+  )
   const { showAlert } = useAppAlert()
 
-  const blockedSlotsOnDate = useMemo(
-    () => getBlockedTimeSlots(counselorBookings, selectedDate),
-    [counselorBookings, selectedDate],
-  )
+  const blockedSlotsOnDate = useMemo(() => {
+    const fromBookings = getBlockedTimeSlots(counselorBookings, selectedDate)
+    const fromProposals = getBlockedTimeSlotsFromProposals(
+      counselorProposals,
+      selectedDate,
+    )
 
-  const loadBookings = useCallback(async () => {
+    return [...new Set([...fromBookings, ...fromProposals])]
+  }, [counselorBookings, counselorProposals, selectedDate])
+
+  const loadSlotData = useCallback(async ({ silent = false } = {}) => {
     if (!counselorId) return
 
-    setIsLoadingBookings(true)
+    if (!silent) {
+      setIsLoadingBookings(true)
+    }
 
     try {
-      const bookings = await fetchCounselorBookingRequests(counselorId)
+      const [bookings, proposals] = await Promise.all([
+        fetchCounselorBookingRequests(counselorId),
+        fetchCounselorSlotProposals(counselorId),
+      ])
       setCounselorBookings(bookings)
+      setCounselorProposals(proposals)
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -48,16 +76,71 @@ export default function SendSlotProposal({ counselorId }) {
           : '예약 정보를 불러오지 못했습니다.'
       setStatusMessage(errorMessage)
     } finally {
-      setIsLoadingBookings(false)
+      if (!silent) {
+        setIsLoadingBookings(false)
+      }
     }
   }, [counselorId])
 
-  useEffect(() => {
-    loadBookings()
-  }, [loadBookings])
+  const handleSlotDataUpdate = useCallback(
+    (updatedProposal = null) => {
+      if (updatedProposal) {
+        setCounselorProposals((prev) => mergeProposalUpdate(prev, updatedProposal))
+      }
 
-  useBookingsUpdatedListener(loadBookings)
-  useSlotProposalsUpdatedListener(loadBookings)
+      loadSlotData({ silent: true })
+    },
+    [loadSlotData],
+  )
+
+  useEffect(() => {
+    loadSlotData()
+  }, [loadSlotData])
+
+  useBookingsUpdatedListener(() => loadSlotData({ silent: true }))
+  useSlotProposalsUpdatedListener(handleSlotDataUpdate)
+
+  useEffect(() => {
+    if (!counselorId) return undefined
+
+    const refreshOnVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadSlotData({ silent: true })
+      }
+    }
+
+    const intervalId = window.setInterval(refreshOnVisible, 10000)
+
+    document.addEventListener('visibilitychange', refreshOnVisible)
+    window.addEventListener('focus', refreshOnVisible)
+
+    return () => {
+      window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', refreshOnVisible)
+      window.removeEventListener('focus', refreshOnVisible)
+    }
+  }, [counselorId, loadSlotData])
+
+  useEffect(() => {
+    setFavoriteClients(getFavoriteClients(counselorId))
+  }, [counselorId])
+
+  const favoriteClientIds = useMemo(
+    () => new Set(favoriteClients.map((client) => client.id)),
+    [favoriteClients],
+  )
+
+  const sortedSearchResults = useMemo(() => {
+    return [...searchResults].sort((a, b) => {
+      const aFavorite = favoriteClientIds.has(a.id)
+      const bFavorite = favoriteClientIds.has(b.id)
+
+      if (aFavorite && !bFavorite) return -1
+      if (!aFavorite && bFavorite) return 1
+
+      return formatClientLabel(a).localeCompare(formatClientLabel(b), 'ko')
+    })
+  }, [searchResults, favoriteClientIds])
 
   useEffect(() => {
     const keyword = searchQuery.trim()
@@ -119,6 +202,19 @@ export default function SendSlotProposal({ counselorId }) {
     setStatusMessage('')
   }
 
+  const handleToggleFavorite = async (client, event) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (isFavoriteClient(counselorId, client.id)) {
+      setFavoriteClients(removeFavoriteClient(counselorId, client.id))
+      return
+    }
+
+    setFavoriteClients(addFavoriteClient(counselorId, client))
+    await showAlert('즐겨찾기에 등록되었습니다.')
+  }
+
   const handleDateChange = (date) => {
     setSelectedDate(date)
     setSelectedTimeSlots([])
@@ -169,7 +265,7 @@ export default function SendSlotProposal({ counselorId }) {
     const sentCount = sendableSlots.length
 
     try {
-      await createSlotProposal({
+      const createdProposal = await createSlotProposal({
         counselorId,
         clientId: selectedClientId,
         slots: sendableSlots.map((timeSlot) => ({
@@ -178,6 +274,9 @@ export default function SendSlotProposal({ counselorId }) {
         })),
         message,
       })
+
+      setCounselorProposals((prev) => mergeProposalUpdate(prev, createdProposal))
+      await loadSlotData({ silent: true })
 
       setSelectedTimeSlots([])
       setMessage('')
@@ -192,15 +291,53 @@ export default function SendSlotProposal({ counselorId }) {
     }
   }
 
+  const showFavoriteDropdown =
+    isSearchOpen && searchQuery.trim().length === 0 && favoriteClients.length > 0
+
   const showSearchResults =
     isSearchOpen && searchQuery.trim().length > 0 && !isSearching
 
+  const renderSearchOption = (client) => {
+    const isFavorite = favoriteClientIds.has(client.id)
+
+    return (
+      <li key={client.id} className="send-slot-proposal__search-item">
+        <button
+          type="button"
+          className={`send-slot-proposal__favorite${
+            isFavorite ? ' send-slot-proposal__favorite--active' : ''
+          }`}
+          aria-label={
+            isFavorite
+              ? `${client.name} 즐겨찾기 해제`
+              : `${client.name} 즐겨찾기 등록`
+          }
+          aria-pressed={isFavorite}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={(event) => handleToggleFavorite(client, event)}
+        >
+          {isFavorite ? '★' : '☆'}
+        </button>
+        <button
+          type="button"
+          className="send-slot-proposal__search-option"
+          role="option"
+          aria-selected={client.id === selectedClientId}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => handleSelectClient(client)}
+        >
+          {formatClientLabel(client)}
+        </button>
+      </li>
+    )
+  }
+
   return (
     <div className="send-slot-proposal">
-      <h1>고객에게 시간 보내기</h1>
+      <h1>상담 시간 제안</h1>
       <p className="reservation-page__description">
-        고객 이름으로 검색해 상담 시간을 제안할 수 있습니다. 이미 예약
-        요청·확정된 시간은 선택할 수 없습니다.
+        이름·휴대폰 뒤 4자리로 검색하거나 즐겨찾기에서 고객을 선택할 수
+        있습니다. 예약·제안 중인 시간은 선택할 수 없습니다.
       </p>
 
       <div className="send-slot-proposal__field">
@@ -216,7 +353,7 @@ export default function SendSlotProposal({ counselorId }) {
             onChange={handleSearchChange}
             onFocus={handleSearchFocus}
             onBlur={handleSearchBlur}
-            placeholder="고객 이름을 입력하세요"
+            placeholder="이름 또는 휴대폰 뒤 4자리"
             disabled={isSubmitting}
             autoComplete="off"
           />
@@ -227,23 +364,16 @@ export default function SendSlotProposal({ counselorId }) {
             </p>
           )}
 
+          {showFavoriteDropdown && (
+            <ul className="send-slot-proposal__search-results" role="listbox">
+              {favoriteClients.map((client) => renderSearchOption(client))}
+            </ul>
+          )}
+
           {showSearchResults && (
             <ul className="send-slot-proposal__search-results" role="listbox">
-              {searchResults.length > 0 ? (
-                searchResults.map((client) => (
-                  <li key={client.id}>
-                    <button
-                      type="button"
-                      className="send-slot-proposal__search-option"
-                      role="option"
-                      aria-selected={client.id === selectedClientId}
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => handleSelectClient(client)}
-                    >
-                      {formatClientLabel(client)}
-                    </button>
-                  </li>
-                ))
+              {sortedSearchResults.length > 0 ? (
+                sortedSearchResults.map((client) => renderSearchOption(client))
               ) : (
                 <li className="send-slot-proposal__search-empty">
                   검색 결과가 없습니다.
@@ -252,6 +382,37 @@ export default function SendSlotProposal({ counselorId }) {
             </ul>
           )}
         </div>
+
+        {favoriteClients.length > 0 && (
+          <div className="send-slot-proposal__favorites">
+            <p className="send-slot-proposal__favorites-label">즐겨찾기</p>
+            <ul className="send-slot-proposal__favorites-list">
+              {favoriteClients.map((client) => (
+                <li key={client.id} className="send-slot-proposal__favorites-item">
+                  <button
+                    type="button"
+                    className={`send-slot-proposal__favorites-chip${
+                      client.id === selectedClientId
+                        ? ' send-slot-proposal__favorites-chip--selected'
+                        : ''
+                    }`}
+                    onClick={() => handleSelectClient(client)}
+                  >
+                    {formatClientLabel(client)}
+                  </button>
+                  <button
+                    type="button"
+                    className="send-slot-proposal__favorites-remove"
+                    aria-label={`${client.name} 즐겨찾기 해제`}
+                    onClick={(event) => handleToggleFavorite(client, event)}
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="send-slot-proposal__field">

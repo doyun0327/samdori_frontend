@@ -1,12 +1,76 @@
-.booking-request-list h1 {
-  margin: 0 0 8px;
+.booking-request-list__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.booking-request-list__header h1 {
+  margin: 0;
   font-size: 1.5rem;
   line-height: 1.35;
   color: var(--reservation-text);
 }
 
-.booking-request-list__filter {
-  margin-bottom: 16px;
+.booking-request-list__pending-count {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(212, 165, 116, 0.2);
+  color: #9a6530;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.booking-request-list__history-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 14px;
+  background: #f5f7f6;
+  color: var(--reservation-text, #1e2b2b);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.booking-request-list__history-link-arrow {
+  color: var(--reservation-primary-dark, #245656);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.booking-request-list__groups {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.booking-request-list__day-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.booking-request-list__date {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--reservation-primary-dark, #245656);
+}
+
+@media (min-width: 768px) {
+  .booking-request-list__header h1 {
+    font-size: 1.75rem;
+  }
 }
 
 .booking-request-list__items {
@@ -23,6 +87,11 @@
   border: 1px solid var(--reservation-border);
   border-radius: 14px;
   background: #fafcfc;
+}
+
+.booking-request-card--past {
+  background: #f5f7f6;
+  opacity: 0.92;
 }
 
 .booking-request-card__header {
@@ -142,10 +211,4 @@
 .booking-request-card__cancel:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-@media (min-width: 768px) {
-  .booking-request-list h1 {
-    font-size: 1.75rem;
-  }
 }

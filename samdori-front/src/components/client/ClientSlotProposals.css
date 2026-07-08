@@ -184,10 +184,11 @@
 
 .client-slot-proposal-card__slot {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
   width: 100%;
+  box-sizing: border-box;
   min-height: 52px;
   padding: 12px 14px;
   border: 1px solid var(--reservation-border, #d7e4e1);
@@ -196,24 +197,22 @@
 }
 
 .client-slot-proposal-card__slot-time {
-  flex: 1;
-  min-width: 0;
   color: var(--reservation-text, #1e2b2b);
   font: inherit;
   font-size: 0.9375rem;
   font-weight: 700;
-  white-space: nowrap;
 }
 
 .client-slot-proposal-card__slot-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(72px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
-  flex-shrink: 0;
-  width: min(176px, 52%);
+  width: 100%;
 }
 
 .client-slot-proposal-card__slot-button {
+  width: 100%;
+  min-width: 0;
   min-height: 36px;
   padding: 0 8px;
   border-radius: 10px;

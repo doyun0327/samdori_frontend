@@ -11,7 +11,10 @@ import {
 } from '../../features/booking/api/bookings'
 import { getBlockedTimeSlots } from '../../features/booking/bookingUtils'
 import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
-import { formatBookingSchedule } from '../../features/booking/formatBooking'
+import {
+  formatBookingSchedule,
+  isFutureTimeSlot,
+} from '../../features/booking/formatBooking'
 import {
   getFavoriteCounselorId,
   setFavoriteCounselorId as persistFavoriteCounselorId,
@@ -230,6 +233,7 @@ export default function ClientBookingSection({
 
   const handleSelectTimeSlot = (timeSlot) => {
     if (blockedSlotsOnDate.includes(timeSlot)) return
+    if (!isFutureTimeSlot(selectedDate, timeSlot)) return
 
     setSelectedTimeSlot(timeSlot)
     setMessage('')
@@ -253,6 +257,11 @@ export default function ClientBookingSection({
 
     if (blockedSlotsOnDate.includes(selectedTimeSlot)) {
       setMessage('이미 예약 요청 또는 확정된 시간입니다.')
+      return
+    }
+
+    if (!isFutureTimeSlot(selectedDate, selectedTimeSlot)) {
+      setMessage('지나간 시간은 예약할 수 없습니다.')
       return
     }
 
@@ -399,6 +408,7 @@ export default function ClientBookingSection({
                   ) : (
                     <TimeSlotPicker
                       mode="book"
+                      selectedDate={selectedDate}
                       selectedSlots={selectedTimeSlot ? [selectedTimeSlot] : []}
                       availableSlots={availableSlotsOnDate}
                       blockedSlots={blockedSlotsOnDate}

@@ -1,127 +1,60 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   acceptBookingRequest,
-  cancelCounselorBookingRequest,
   fetchCounselorBookingRequests,
   rejectBookingRequest,
 } from '../../features/booking/api/bookings'
-import {
-  BOOKING_STATUS,
-  BOOKING_STATUS_LABEL,
-} from '../../features/booking/constants'
-import {
-  formatBookingSchedule,
-  formatRequestedAt,
-  isUpcomingSchedule,
-} from '../../features/booking/formatBooking'
+import { BOOKING_STATUS } from '../../features/booking/constants'
+import { isUpcomingSchedule } from '../../features/booking/formatBooking'
 import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
-import { useAppAlert } from '../../context/AppAlertContext'
+import BookingRequestCard from './BookingRequestCard'
+import ProcessedRequestsSheet from './ProcessedRequestsSheet'
 import './BookingRequestList.css'
 
-const REQUEST_FILTER = {
-  PENDING: 'pending',
-  COMPLETED: 'completed',
+function sortByScheduleDesc(a, b) {
+  const dateCompare = b.date.localeCompare(a.date)
+  if (dateCompare !== 0) return dateCompare
+
+  return (b.timeSlot ?? '').localeCompare(a.timeSlot ?? '')
 }
 
-function BookingRequestCard({
-  request,
-  isProcessing,
-  isCancelling,
-  onAccept,
-  onReject,
-  onCancel,
-}) {
-  const isPending = request.status === BOOKING_STATUS.PENDING
-  const canCancel =
-    Boolean(onCancel) &&
+function sortByScheduleAsc(a, b) {
+  return sortByScheduleDesc(b, a)
+}
+
+function isProcessedRecord(request) {
+  if (request.status === BOOKING_STATUS.PENDING) return false
+
+  if (
     request.status === BOOKING_STATUS.ACCEPTED &&
     isUpcomingSchedule(request.date, request.timeSlot)
+  ) {
+    return false
+  }
 
-  return (
-    <article className="booking-request-card">
-      <div className="booking-request-card__header">
-        <p className="booking-request-card__client">{request.clientName}님</p>
-        <span
-          className={`booking-request-card__status booking-request-card__status--${request.status.toLowerCase()}`}
-        >
-          {BOOKING_STATUS_LABEL[request.status]}
-        </span>
-      </div>
-
-      <p className="booking-request-card__schedule">
-        {formatBookingSchedule(request.date, request.timeSlot)}
-      </p>
-      <p className="booking-request-card__meta">
-        요청 {formatRequestedAt(request.requestedAt)}
-        {request.respondedAt &&
-          ` · 처리 ${formatRequestedAt(request.respondedAt)}`}
-        {request.cancelReason && ` · 사유 ${request.cancelReason}`}
-      </p>
-
-      {isPending && (
-        <div className="booking-request-card__actions">
-          <button
-            type="button"
-            className="booking-request-card__accept"
-            onClick={() => onAccept(request.id)}
-            disabled={isProcessing}
-          >
-            {isProcessing ? '처리 중...' : '수락'}
-          </button>
-          <button
-            type="button"
-            className="booking-request-card__reject"
-            onClick={() => onReject(request.id)}
-            disabled={isProcessing}
-          >
-            거절
-          </button>
-        </div>
-      )}
-
-      {canCancel && (
-        <button
-          type="button"
-          className="booking-request-card__cancel"
-          onClick={() => onCancel(request.id)}
-          disabled={isCancelling}
-        >
-          {isCancelling ? '취소 중...' : '취소하기'}
-        </button>
-      )}
-    </article>
-  )
+  return true
 }
 
 export default function BookingRequestList({ counselorId }) {
   const [requests, setRequests] = useState([])
-  const [filter, setFilter] = useState(REQUEST_FILTER.PENDING)
   const [isLoading, setIsLoading] = useState(false)
   const [processingId, setProcessingId] = useState('')
-  const [cancellingId, setCancellingId] = useState('')
   const [message, setMessage] = useState('')
-  const { showCancelReason } = useAppAlert()
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
 
   const loadRequests = useCallback(async () => {
-    // 상담사 ID가 없으면 API 호출 없이 종료
     if (!counselorId) return
 
-    // 목록 로딩 중 UI 표시
     setIsLoading(true)
 
     try {
-      // 서버에서 이 상담사에게 온 예약 요청 전체 목록 조회
       const list = await fetchCounselorBookingRequests(counselorId)
-      // 화면에 보여줄 예약 요청 목록 state 갱신
       setRequests(list)
     } catch (error) {
-      // API 실패 시 에러 메시지 추출 (Error 객체면 message, 아니면 기본 문구)
       const errorMessage =
         error instanceof Error ? error.message : '예약 요청을 불러오지 못했습니다.'
-      // 사용자에게 보여줄 안내/에러 메시지 설정
       setMessage(errorMessage)
     } finally {
-      // 성공·실패와 관계없이 로딩 상태 해제
       setIsLoading(false)
     }
   }, [counselorId])
@@ -132,13 +65,39 @@ export default function BookingRequestList({ counselorId }) {
 
   useBookingsUpdatedListener(loadRequests)
 
-  const filteredRequests = useMemo(() => {
-    if (filter === REQUEST_FILTER.PENDING) {
-      return requests.filter((request) => request.status === BOOKING_STATUS.PENDING)
+  const pendingRequests = useMemo(
+    () =>
+      requests
+        .filter((request) => request.status === BOOKING_STATUS.PENDING)
+        .sort(sortByScheduleAsc),
+    [requests],
+  )
+
+  const pendingRequestIds = useMemo(
+    () => pendingRequests.map((request) => request.id),
+    [pendingRequests],
+  )
+
+  const prevPendingIdsRef = useRef(null)
+
+  useEffect(() => {
+    const currentIds = new Set(pendingRequestIds)
+    const prevIds = prevPendingIdsRef.current
+
+    if (prevIds !== null) {
+      const hasNewPending = pendingRequestIds.some((id) => !prevIds.has(id))
+      if (hasNewPending) {
+        setMessage('')
+      }
     }
 
-    return requests.filter((request) => request.status !== BOOKING_STATUS.PENDING)
-  }, [filter, requests])
+    prevPendingIdsRef.current = currentIds
+  }, [pendingRequestIds])
+
+  const processedRecords = useMemo(
+    () => requests.filter(isProcessedRecord).sort(sortByScheduleDesc),
+    [requests],
+  )
 
   const handleAccept = async (requestId) => {
     setProcessingId(requestId)
@@ -177,71 +136,20 @@ export default function BookingRequestList({ counselorId }) {
     }
   }
 
-  const handleCancel = async (requestId) => {
-    const reason = await showCancelReason('확정된 예약을 취소하시겠습니까?')
-    if (reason === null) return
-
-    setCancellingId(requestId)
-    setMessage('')
-
-    try {
-      await cancelCounselorBookingRequest(requestId, counselorId, reason)
-      await loadRequests()
-      setMessage('예약이 취소되었습니다.')
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : '예약 취소에 실패했습니다.'
-      setMessage(errorMessage)
-    } finally {
-      setCancellingId('')
-    }
-  }
-
   return (
     <div className="booking-request-list">
-      <h1>예약 요청</h1>
-      <p className="reservation-page__description">
-        내담자가 보낸 예약 요청을 확인하고 수락 또는 거절할 수 있습니다.
-      </p>
-
-      <div
-        className="reservation-page__mode-toggle booking-request-list__filter"
-        role="tablist"
-        aria-label="예약 요청 필터"
-      >
-        <button
-          type="button"
-          role="tab"
-          aria-selected={filter === REQUEST_FILTER.PENDING}
-          className={`reservation-page__mode-button${
-            filter === REQUEST_FILTER.PENDING
-              ? ' reservation-page__mode-button--active'
-              : ''
-          }`}
-          onClick={() => {
-            setFilter(REQUEST_FILTER.PENDING)
-            setMessage('')
-          }}
-        >
-          대기 중
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={filter === REQUEST_FILTER.COMPLETED}
-          className={`reservation-page__mode-button${
-            filter === REQUEST_FILTER.COMPLETED
-              ? ' reservation-page__mode-button--active'
-              : ''
-          }`}
-          onClick={() => {
-            setFilter(REQUEST_FILTER.COMPLETED)
-            setMessage('')
-          }}
-        >
-          처리 완료
-        </button>
+      <div className="booking-request-list__header">
+        <h1>예약 요청</h1>
+        {pendingRequests.length > 0 && (
+          <span className="booking-request-list__pending-count">
+            대기 {pendingRequests.length}건
+          </span>
+        )}
       </div>
+      <p className="reservation-page__description">
+        대기 중인 예약 요청을 수락하거나 거절할 수 있습니다. 확정된 일정은
+        상담 스케줄에서 확인하세요.
+      </p>
 
       {isLoading && (
         <p className="reservation-page__loading" role="status">
@@ -249,25 +157,21 @@ export default function BookingRequestList({ counselorId }) {
         </p>
       )}
 
-      {!isLoading && filteredRequests.length === 0 && (
+      {!isLoading && pendingRequests.length === 0 && (
         <p className="reservation-page__empty-state" role="status">
-          {filter === REQUEST_FILTER.PENDING
-            ? '대기 중인 예약 요청이 없습니다.'
-            : '처리 완료된 예약 요청이 없습니다.'}
+          대기 중인 예약 요청이 없습니다.
         </p>
       )}
 
-      {!isLoading && filteredRequests.length > 0 && (
+      {!isLoading && pendingRequests.length > 0 && (
         <ul className="booking-request-list__items">
-          {filteredRequests.map((request) => (
+          {pendingRequests.map((request) => (
             <li key={request.id}>
               <BookingRequestCard
                 request={request}
                 isProcessing={processingId === request.id}
-                isCancelling={cancellingId === request.id}
                 onAccept={handleAccept}
                 onReject={handleReject}
-                onCancel={handleCancel}
               />
             </li>
           ))}
@@ -278,6 +182,26 @@ export default function BookingRequestList({ counselorId }) {
         <p className="reservation-page__message" role="status">
           {message}
         </p>
+      )}
+
+      {!isLoading && processedRecords.length > 0 && (
+        <button
+          type="button"
+          className="booking-request-list__history-link"
+          onClick={() => setIsHistoryOpen(true)}
+        >
+          <span>처리 기록 {processedRecords.length}건 보기</span>
+          <span className="booking-request-list__history-link-arrow" aria-hidden="true">
+            ›
+          </span>
+        </button>
+      )}
+
+      {isHistoryOpen && (
+        <ProcessedRequestsSheet
+          requests={processedRecords}
+          onClose={() => setIsHistoryOpen(false)}
+        />
       )}
     </div>
   )

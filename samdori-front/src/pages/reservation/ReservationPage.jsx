@@ -164,7 +164,7 @@ export default function ReservationPage() {
     () => [
       {
         id: COUNSELOR_SECTION.AVAILABILITY,
-        label: '시간 관리',
+        label: '상담 시간 설정',
         path: RESERVATION_PATH,
       },
       {
@@ -180,7 +180,7 @@ export default function ReservationPage() {
       },
       {
         id: COUNSELOR_SECTION.PROPOSALS,
-        label: '시간 보내기',
+        label: '상담 시간 제안',
         path: COUNSELOR_PROPOSALS_PATH,
       },
     ],

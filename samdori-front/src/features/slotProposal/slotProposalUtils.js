@@ -43,11 +43,36 @@ export function extractSlotProposals(data) {
 }
 
 export function isPendingProposalSlot(slot) {
-  return slot?.status === PROPOSAL_SLOT_STATUS.PENDING
+  return (
+    String(slot?.status ?? PROPOSAL_SLOT_STATUS.PENDING).toUpperCase() ===
+    PROPOSAL_SLOT_STATUS.PENDING
+  )
 }
 
 export function getPendingSlots(proposal) {
   return (proposal?.slots ?? []).filter(isPendingProposalSlot)
+}
+
+export function getBlockedTimeSlotsFromProposals(proposals, date) {
+  if (!Array.isArray(proposals)) return []
+
+  const blocked = new Set()
+
+  proposals.forEach((proposal) => {
+    if (
+      proposal.status === SLOT_PROPOSAL_STATUS.CANCELLED ||
+      proposal.status === SLOT_PROPOSAL_STATUS.EXPIRED
+    ) {
+      return
+    }
+
+    getPendingSlots(proposal).forEach((slot) => {
+      if (date && slot.date !== date) return
+      blocked.add(slot.timeSlot)
+    })
+  })
+
+  return [...blocked]
 }
 
 export function withPendingSlotsOnly(proposal) {
@@ -106,8 +131,23 @@ export function removeSlotFromProposals(
     .filter(Boolean)
 }
 
-export function notifySlotProposalsUpdated() {
-  window.dispatchEvent(new Event(SLOT_PROPOSALS_UPDATED_EVENT))
+export function mergeProposalUpdate(proposals, updated) {
+  if (!updated?.id) return proposals
+
+  const normalized = normalizeSlotProposal(updated)
+  const rest = proposals.filter((proposal) => proposal.id !== normalized.id)
+
+  return [...rest, normalized]
+}
+
+export function notifySlotProposalsUpdated(proposal = null) {
+  window.dispatchEvent(
+    new CustomEvent(SLOT_PROPOSALS_UPDATED_EVENT, {
+      detail: {
+        proposal: proposal ? normalizeSlotProposal(proposal) : null,
+      },
+    }),
+  )
 }
 
 function sortSlots(slots) {

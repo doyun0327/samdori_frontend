@@ -44,30 +44,31 @@ function TimeSlotSection({
           const isAvailable = availableSlots.includes(slot.value)
           const isBlocked = blockedSlots.includes(slot.value)
           const isSelected = selectedSlots.includes(slot.value)
-          const isPastSendSlot =
-            mode === 'send' &&
+          const isPastSlot =
+            (mode === 'send' || mode === 'book') &&
             selectedDate &&
             !isFutureTimeSlot(selectedDate, slot.value, referenceNow)
           const isSelectable =
             mode === 'book'
-              ? isAvailable && !isBlocked
+              ? isAvailable && !isBlocked && !isPastSlot
               : mode === 'register'
                 ? !isRegistered
                 : mode === 'send'
-                  ? !isPastSendSlot && !isBlocked
+                  ? !isPastSlot && !isBlocked
                   : mode === 'unregister'
                     ? isRegistered && !isBlocked
                     : isRegistered && !isBlocked
           const optionClassName = [
             'time-slot-picker__option',
-            (mode === 'book' && isAvailable) || (mode === 'send' && isSelectable)
+            (mode === 'book' && isAvailable && !isPastSlot) ||
+              (mode === 'send' && isSelectable)
               ? 'time-slot-picker__option--available'
               : '',
             isRegistered && mode !== 'book' && mode !== 'send'
               ? 'time-slot-picker__option--registered'
               : '',
             isBlocked ? 'time-slot-picker__option--blocked' : '',
-            isPastSendSlot ? 'time-slot-picker__option--past' : '',
+            isPastSlot ? 'time-slot-picker__option--past' : '',
             !isSelectable ? 'time-slot-picker__option--inactive' : '',
             mode === 'unregister' && isSelected
               ? 'time-slot-picker__option--remove-selected'
@@ -120,7 +121,7 @@ export default function TimeSlotPicker({
   const [referenceNow, setReferenceNow] = useState(() => new Date())
 
   useEffect(() => {
-    if (mode !== 'send' || !selectedDate) return
+    if ((mode !== 'send' && mode !== 'book') || !selectedDate) return
 
     setReferenceNow(new Date())
 

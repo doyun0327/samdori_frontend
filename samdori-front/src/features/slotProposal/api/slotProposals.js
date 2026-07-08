@@ -20,6 +20,10 @@ async function requestJson(url, options = {}) {
   return data
 }
 
+function extractProposal(data) {
+  return normalizeSlotProposal(data?.data ?? data)
+}
+
 export async function createSlotProposal({
   counselorId,
   clientId,
@@ -36,10 +40,9 @@ export async function createSlotProposal({
     }),
   })
 
-  notifySlotProposalsUpdated()
-
-  const proposal = data?.data ?? data
-  return normalizeSlotProposal(proposal)
+  const proposal = extractProposal(data)
+  notifySlotProposalsUpdated(proposal)
+  return proposal
 }
 
 export async function fetchClientSlotProposals(clientId) {
@@ -75,10 +78,9 @@ export async function cancelSlotProposal(proposalId, counselorId) {
     },
   )
 
-  notifySlotProposalsUpdated()
-
-  const proposal = data?.data ?? data
-  return normalizeSlotProposal(proposal)
+  const proposal = extractProposal(data)
+  notifySlotProposalsUpdated(proposal)
+  return proposal
 }
 
 export async function declineClientSlotProposal(
@@ -97,10 +99,9 @@ export async function declineClientSlotProposal(
     },
   )
 
-  notifySlotProposalsUpdated()
-
-  const proposal = data?.data ?? data
-  return normalizeSlotProposal(proposal)
+  const proposal = extractProposal(data)
+  notifySlotProposalsUpdated(proposal)
+  return proposal
 }
 
 export async function bookSlotFromProposal(proposalId, { clientId, date, timeSlot }) {
@@ -116,7 +117,13 @@ export async function bookSlotFromProposal(proposalId, { clientId, date, timeSlo
     },
   )
 
-  notifySlotProposalsUpdated()
+  const payload = data?.data ?? data
 
-  return data?.data ?? data
+  if (payload?.proposal) {
+    notifySlotProposalsUpdated(payload.proposal)
+  } else {
+    notifySlotProposalsUpdated()
+  }
+
+  return payload
 }

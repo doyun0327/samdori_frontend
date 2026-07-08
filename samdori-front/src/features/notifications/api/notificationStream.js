@@ -57,7 +57,7 @@ function createSlotProposalHandler(onSlotProposalUpdated) {
     if (proposal) {
       onSlotProposalUpdated?.(proposal)
     }
-    notifySlotProposalsUpdated()
+    notifySlotProposalsUpdated(proposal)
   }
 }
 

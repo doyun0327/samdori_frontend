@@ -11,8 +11,15 @@
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-  --heading: 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --sans:
+    'Noto Sans KR',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'Apple SD Gothic Neo',
+    'Malgun Gothic',
+    sans-serif;
+  --heading: var(--sans);
   --mono: ui-monospace, Consolas, monospace;
 
   font: 16px/150% var(--sans);
@@ -66,7 +73,7 @@ body {
 h1,
 h2 {
   font-family: var(--heading);
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-h);
 }
 
