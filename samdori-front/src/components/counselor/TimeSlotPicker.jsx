@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import './TimeSlotPicker.css'
+import { isFutureTimeSlot } from '../../features/booking/formatBooking'
 
 function createSlot(hour) {
   const start = String(hour).padStart(2, '0')
@@ -17,6 +19,7 @@ const MODE_COPY = {
   register: '등록할 시간을 선택해 주세요.',
   unregister: '해제할 시간을 선택해 주세요.',
   book: '예약할 시간을 선택해 주세요.',
+  send: '고객에게 보낼 시간을 선택해 주세요.',
 }
 
 function TimeSlotSection({
@@ -29,6 +32,8 @@ function TimeSlotSection({
   availableSlots = [],
   blockedSlots = [],
   mode,
+  selectedDate = '',
+  referenceNow = new Date(),
 }) {
   return (
     <section className="time-slot-picker__section">
@@ -39,37 +44,59 @@ function TimeSlotSection({
           const isAvailable = availableSlots.includes(slot.value)
           const isBlocked = blockedSlots.includes(slot.value)
           const isSelected = selectedSlots.includes(slot.value)
+          const isPastSendSlot =
+            mode === 'send' &&
+            selectedDate &&
+            !isFutureTimeSlot(selectedDate, slot.value, referenceNow)
           const isSelectable =
             mode === 'book'
               ? isAvailable && !isBlocked
               : mode === 'register'
                 ? !isRegistered
-                : isRegistered && !isBlocked
+                : mode === 'send'
+                  ? !isPastSendSlot && !isBlocked
+                  : mode === 'unregister'
+                    ? isRegistered && !isBlocked
+                    : isRegistered && !isBlocked
+          const optionClassName = [
+            'time-slot-picker__option',
+            (mode === 'book' && isAvailable) || (mode === 'send' && isSelectable)
+              ? 'time-slot-picker__option--available'
+              : '',
+            isRegistered && mode !== 'book' && mode !== 'send'
+              ? 'time-slot-picker__option--registered'
+              : '',
+            isBlocked ? 'time-slot-picker__option--blocked' : '',
+            isPastSendSlot ? 'time-slot-picker__option--past' : '',
+            !isSelectable ? 'time-slot-picker__option--inactive' : '',
+            mode === 'unregister' && isSelected
+              ? 'time-slot-picker__option--remove-selected'
+              : '',
+          ]
+            .filter(Boolean)
+            .join(' ')
+
+          if (!isSelectable) {
+            return (
+              <div
+                key={slot.value}
+                className={optionClassName}
+                aria-disabled="true"
+              >
+                <span>{slot.label}</span>
+              </div>
+            )
+          }
 
           return (
-            <label
-              key={slot.value}
-              className={`time-slot-picker__option${
-                mode === 'book' && isAvailable
-                  ? ' time-slot-picker__option--available'
-                  : ''
-              }${isRegistered && mode !== 'book'
-                  ? ' time-slot-picker__option--registered'
-                  : ''}${isBlocked ? ' time-slot-picker__option--blocked' : ''}${
-                !isSelectable ? ' time-slot-picker__option--inactive' : ''
-              }${
-                mode === 'unregister' && isSelected
-                  ? ' time-slot-picker__option--remove-selected'
-                  : ''
-              }`}
-            >
+            <label key={slot.value} className={optionClassName}>
               <input
                 type={mode === 'book' ? 'radio' : 'checkbox'}
                 name={mode === 'book' ? 'book-slot' : undefined}
                 value={slot.value}
                 checked={isSelected}
                 onChange={() => onToggle(slot.value)}
-                disabled={disabled || !isSelectable}
+                disabled={disabled}
               />
               <span>{slot.label}</span>
             </label>
@@ -88,7 +115,27 @@ export default function TimeSlotPicker({
   registeredSlots = [],
   availableSlots = [],
   blockedSlots = [],
+  selectedDate = '',
 }) {
+  const [referenceNow, setReferenceNow] = useState(() => new Date())
+
+  useEffect(() => {
+    if (mode !== 'send' || !selectedDate) return
+
+    setReferenceNow(new Date())
+
+    const today = new Date()
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+    if (selectedDate !== todayKey) return
+
+    const intervalId = window.setInterval(() => {
+      setReferenceNow(new Date())
+    }, 60_000)
+
+    return () => window.clearInterval(intervalId)
+  }, [mode, selectedDate])
+
   return (
     <div className="time-slot-picker">
       <p className="time-slot-picker__title">{MODE_COPY[mode]}</p>
@@ -103,6 +150,8 @@ export default function TimeSlotPicker({
         availableSlots={availableSlots}
         blockedSlots={blockedSlots}
         mode={mode}
+        selectedDate={selectedDate}
+        referenceNow={referenceNow}
       />
 
       <TimeSlotSection
@@ -115,6 +164,8 @@ export default function TimeSlotPicker({
         availableSlots={availableSlots}
         blockedSlots={blockedSlots}
         mode={mode}
+        selectedDate={selectedDate}
+        referenceNow={referenceNow}
       />
     </div>
   )

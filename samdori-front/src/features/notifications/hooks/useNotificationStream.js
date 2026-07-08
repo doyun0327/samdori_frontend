@@ -4,11 +4,18 @@ import {
   disconnectNotificationStream,
 } from '../api/notificationStream'
 
-export function useNotificationStream({ userId, role, onBookingUpdated }) {
+export function useNotificationStream({
+  userId,
+  role,
+  onBookingUpdated,
+  onSlotProposalUpdated,
+}) {
   const eventSourceRef = useRef(null)
   const onBookingUpdatedRef = useRef(onBookingUpdated)
+  const onSlotProposalUpdatedRef = useRef(onSlotProposalUpdated)
 
   onBookingUpdatedRef.current = onBookingUpdated
+  onSlotProposalUpdatedRef.current = onSlotProposalUpdated
 
   const disconnect = useCallback(() => {
     disconnectNotificationStream(eventSourceRef.current, { log: true })
@@ -22,6 +29,8 @@ export function useNotificationStream({ userId, role, onBookingUpdated }) {
 
     eventSourceRef.current = connectNotificationStream(userId, role, {
       onBookingUpdated: (booking) => onBookingUpdatedRef.current?.(booking),
+      onSlotProposalUpdated: (proposal) =>
+        onSlotProposalUpdatedRef.current?.(proposal),
     })
 
     return () => {

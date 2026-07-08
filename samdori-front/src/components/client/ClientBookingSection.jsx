@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AvailabilityCalendar from '../../components/counselor/AvailabilityCalendar'
 import TimeSlotPicker from '../../components/counselor/TimeSlotPicker'
+import ClientSlotProposals from './ClientSlotProposals'
 import { useAppAlert } from '../../context/AppAlertContext'
 import { fetchCounselors } from '../../features/client/api/counselors'
 import { fetchAvailability } from '../../features/counselor/api/availability'
@@ -20,6 +21,7 @@ export default function ClientBookingSection({
   clientName,
   clientId,
   onBookingCreated,
+  onProposalCountChange,
 }) {
   const [counselors, setCounselors] = useState([]) // API에서 불러온 전체 상담사 목록
   const [selectedCounselorId, setSelectedCounselorId] = useState('') // 예약 대상으로 선택한 상담사 ID
@@ -285,6 +287,12 @@ export default function ClientBookingSection({
 
   return (
     <>
+      <ClientSlotProposals
+        clientId={clientId}
+        onBooked={onBookingCreated}
+        onProposalCountChange={onProposalCountChange}
+      />
+
       <h1>{clientName}님, 상담을 예약해 보세요</h1>
       <p className="reservation-page__description">
         상담사를 검색해 선택하거나 즐겨찾기로 등록해 주세요. 즐겨찾기한

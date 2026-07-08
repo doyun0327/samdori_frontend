@@ -96,6 +96,13 @@
 .time-slot-picker__option--inactive {
   opacity: 0.45;
   cursor: not-allowed;
+  pointer-events: none;
+}
+
+.time-slot-picker__option--past {
+  border-color: var(--reservation-border, #d7e4e1);
+  background: #f5f7f6;
+  color: var(--reservation-muted, #6b7b7b);
 }
 
 .time-slot-picker__option--inactive:has(input:checked) {

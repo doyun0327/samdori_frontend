@@ -10,6 +10,7 @@ import ClientSection, {
 } from '../../components/client/ClientSection'
 import {
   COUNSELOR_BOOKINGS_PATH,
+  COUNSELOR_PROPOSALS_PATH,
   COUNSELOR_REQUESTS_PATH,
   RESERVATION_PATH,
 } from '../../routes/paths'
@@ -34,6 +35,7 @@ import {
   isRelevantBookingUpdate,
 } from '../../features/notifications/getBookingNotificationMessage'
 import { useNotificationStream } from '../../features/notifications/hooks/useNotificationStream'
+import { isActiveSlotProposal } from '../../features/slotProposal/slotProposalUtils'
 import './ReservationPage.css'
 
 export default function ReservationPage() {
@@ -48,6 +50,9 @@ export default function ReservationPage() {
     }
     if (location.pathname === COUNSELOR_BOOKINGS_PATH) {
       return COUNSELOR_SECTION.BOOKINGS
+    }
+    if (location.pathname === COUNSELOR_PROPOSALS_PATH) {
+      return COUNSELOR_SECTION.PROPOSALS
     }
     return COUNSELOR_SECTION.AVAILABILITY
   })()
@@ -90,11 +95,27 @@ export default function ReservationPage() {
     [id, loadNotificationCount, role],
   )
 
-  // 상담사 메뉴 URL: /reservation, /reservation/requests, /reservation/bookings
+  const handleSlotProposalUpdated = useCallback(
+    (proposal) => {
+      if (
+        isClient(role) &&
+        isActiveSlotProposal(proposal) &&
+        String(proposal.clientId) === String(id)
+      ) {
+        const counselorName = proposal.counselorName || '상담사'
+        setToast(`${counselorName}님이 상담 가능한 시간을 보냈습니다.`)
+        setClientSection(CLIENT_SECTION.BOOK)
+      }
+    },
+    [id, role],
+  )
+
+  // 상담사 메뉴 URL: /reservation, /reservation/requests, /reservation/bookings, /reservation/proposals
   const { disconnect: disconnectStream } = useNotificationStream({
     userId: id,
     role,
     onBookingUpdated: handleBookingUpdated,
+    onSlotProposalUpdated: handleSlotProposalUpdated,
   })
 
   useEffect(() => {
@@ -157,6 +178,11 @@ export default function ReservationPage() {
         label: '상담 스케줄',
         path: COUNSELOR_BOOKINGS_PATH,
       },
+      {
+        id: COUNSELOR_SECTION.PROPOSALS,
+        label: '시간 보내기',
+        path: COUNSELOR_PROPOSALS_PATH,
+      },
     ],
     [notificationCount],
   )
@@ -200,7 +226,8 @@ export default function ReservationPage() {
   if (
     !counselor &&
     (location.pathname === COUNSELOR_REQUESTS_PATH ||
-      location.pathname === COUNSELOR_BOOKINGS_PATH)
+      location.pathname === COUNSELOR_BOOKINGS_PATH ||
+      location.pathname === COUNSELOR_PROPOSALS_PATH)
   ) {
     return <Navigate to={RESERVATION_PATH} replace />
   }
@@ -245,6 +272,12 @@ export default function ReservationPage() {
           )}
         </div>
       </main>
+
+      {toast && (
+        <p className="reservation-page__toast" role="status">
+          {toast}
+        </p>
+      )}
     </div>
   )
 }

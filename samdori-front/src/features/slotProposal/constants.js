@@ -1,0 +1,19 @@
+export const SLOT_PROPOSAL_STATUS = {
+  PENDING: 'PENDING',
+  BOOKED: 'BOOKED',
+  EXPIRED: 'EXPIRED',
+  CANCELLED: 'CANCELLED',
+}
+
+export const SLOT_PROPOSAL_STATUS_LABEL = {
+  PENDING: '대기',
+  BOOKED: '예약됨',
+  EXPIRED: '만료',
+  CANCELLED: '취소됨',
+}
+
+export const PROPOSAL_SLOT_STATUS = {
+  PENDING: 'PENDING',
+  BOOKED: 'BOOKED',
+  DECLINED: 'DECLINED',
+}

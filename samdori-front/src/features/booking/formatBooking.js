@@ -18,6 +18,17 @@ export function getTimeSlotEndDate(date, timeSlot) {
   return new Date(`${date}T${endTime}:00`)
 }
 
+export function getTimeSlotStartDate(date, timeSlot) {
+  const startTime = timeSlot?.split('-')[0]?.trim()
+
+  if (!startTime) {
+    return new Date(`${date}T00:00:00`)
+  }
+
+  return new Date(`${date}T${startTime}:00`)
+}
+
+/** 예약·스케줄이 아직 끝나지 않았는지 (종료 시각 기준) */
 export function isUpcomingSchedule(date, timeSlot, now = new Date()) {
   if (!date) return false
 
@@ -27,6 +38,18 @@ export function isUpcomingSchedule(date, timeSlot, now = new Date()) {
   if (date > today) return true
 
   return getTimeSlotEndDate(date, timeSlot).getTime() > now.getTime()
+}
+
+/** 슬롯 시작 시각이 현재보다 미래인지 (시간 보내기 등 시작 시각 기준) */
+export function isFutureTimeSlot(date, timeSlot, now = new Date()) {
+  if (!date) return false
+
+  const today = toLocalDateString(now)
+
+  if (date < today) return false
+  if (date > today) return true
+
+  return getTimeSlotStartDate(date, timeSlot).getTime() > now.getTime()
 }
 
 export function formatScheduleDateHeader(date, now = new Date()) {

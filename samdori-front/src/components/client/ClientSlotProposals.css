@@ -1,0 +1,270 @@
+.client-slot-proposals {
+  margin-bottom: 28px;
+  padding: 18px;
+  border: 1px solid rgba(45, 106, 106, 0.2);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(45, 106, 106, 0.08) 0%, rgba(255, 255, 255, 0.98) 38%),
+    #fff;
+  box-shadow: 0 10px 28px rgba(30, 43, 43, 0.06);
+}
+
+.client-slot-proposals--loading {
+  padding: 16px 18px;
+}
+
+.client-slot-proposals__banner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.client-slot-proposals__banner-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(45, 106, 106, 0.12);
+  font-size: 1.25rem;
+}
+
+.client-slot-proposals__banner-copy {
+  min-width: 0;
+}
+
+.client-slot-proposals__eyebrow {
+  margin: 0 0 4px;
+  color: #9a6530;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.client-slot-proposals__title {
+  margin: 0 0 4px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--reservation-primary-dark, #245656);
+}
+
+.client-slot-proposals__subtitle {
+  margin: 0;
+  color: var(--reservation-muted, #6b7b7b);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.client-slot-proposals__count {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--reservation-primary, #2d6a6a);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.client-slot-proposals__loading {
+  margin: 0;
+  color: var(--reservation-muted, #6b7b7b);
+  font-size: 0.9375rem;
+}
+
+.client-slot-proposals__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.client-slot-proposal-card {
+  overflow: hidden;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.client-slot-proposal-card__top {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 14px 0;
+}
+
+.client-slot-proposal-card__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--reservation-primary-soft, rgba(45, 106, 106, 0.12));
+  color: var(--reservation-primary-dark, #245656);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.client-slot-proposal-card__intro {
+  min-width: 0;
+}
+
+.client-slot-proposal-card__counselor {
+  margin: 0 0 2px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--reservation-text, #1e2b2b);
+}
+
+.client-slot-proposal-card__meta {
+  margin: 0;
+  color: var(--reservation-muted, #6b7b7b);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.client-slot-proposal-card__badge {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(212, 165, 116, 0.18);
+  color: #9a6530;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.client-slot-proposal-card__message {
+  margin: 12px 14px 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--reservation-primary, #2d6a6a);
+  border-radius: 0 12px 12px 0;
+  background: #f7fafa;
+  color: var(--reservation-text, #1e2b2b);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.client-slot-proposal-card__schedule {
+  padding: 14px;
+}
+
+.client-slot-proposal-card__schedule-label {
+  margin: 0 0 10px;
+  color: var(--reservation-muted, #6b7b7b);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.client-slot-proposal-card__day + .client-slot-proposal-card__day {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--reservation-border, #d7e4e1);
+}
+
+.client-slot-proposal-card__date {
+  margin: 0 0 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--reservation-primary-dark, #245656);
+}
+
+.client-slot-proposal-card__slots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.client-slot-proposal-card__slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.client-slot-proposal-card__slot-time {
+  flex: 1;
+  min-width: 0;
+  color: var(--reservation-text, #1e2b2b);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.client-slot-proposal-card__slot-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(72px, 1fr));
+  gap: 8px;
+  flex-shrink: 0;
+  width: min(176px, 52%);
+}
+
+.client-slot-proposal-card__slot-button {
+  min-height: 36px;
+  padding: 0 8px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.client-slot-proposal-card__slot-button--decline {
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  background: #fff;
+  color: var(--reservation-muted, #6b7b7b);
+}
+
+.client-slot-proposal-card__slot-button--decline:hover {
+  color: #b04545;
+  border-color: #e0bcbc;
+}
+
+.client-slot-proposal-card__slot-button--confirm {
+  border: none;
+  background: linear-gradient(
+    135deg,
+    var(--reservation-primary, #2d6a6a),
+    var(--reservation-primary-dark, #245656)
+  );
+  color: #fff;
+}
+
+.client-slot-proposal-card__slot-button--confirm:hover {
+  opacity: 0.95;
+}
+
+.client-slot-proposal-card__slot-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.client-slot-proposals__feedback {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--reservation-primary-soft, rgba(45, 106, 106, 0.12));
+  color: var(--reservation-primary-dark, #245656);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+}

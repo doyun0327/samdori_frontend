@@ -19,9 +19,13 @@ export default function ClientSection({
   onResponsesViewed,//🔔 알림 숫자 다시 계산 (읽음 처리 후)
 }) {
   const [pendingTabCount, setPendingTabCount] = useState(0)
+  const [proposalTabCount, setProposalTabCount] = useState(0)
 
   const listTabLabel =
     pendingTabCount > 0 ? `내 예약 (${pendingTabCount})` : '내 예약'
+
+  const bookTabLabel =
+    proposalTabCount > 0 ? `예약하기 (${proposalTabCount})` : '예약하기'
 
   const handleBookingCreated = () => {
     onSectionChange(CLIENT_SECTION.LIST)
@@ -71,7 +75,7 @@ export default function ClientSection({
           }`}
           onClick={() => onSectionChange(CLIENT_SECTION.BOOK)}
         >
-          예약하기
+          {bookTabLabel}
         </button>
         <button
           type="button"
@@ -93,6 +97,7 @@ export default function ClientSection({
           clientName={clientName}
           clientId={clientId}
           onBookingCreated={handleBookingCreated}
+          onProposalCountChange={setProposalTabCount}
         />
       ) : (
         <div className="client-booking-list-section">

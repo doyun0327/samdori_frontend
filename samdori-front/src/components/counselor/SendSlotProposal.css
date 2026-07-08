@@ -1,0 +1,60 @@
+.send-slot-proposal h1 {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+  line-height: 1.35;
+  color: var(--reservation-text);
+}
+
+.send-slot-proposal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.send-slot-proposal__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--reservation-text);
+}
+
+.send-slot-proposal__select,
+.send-slot-proposal__message {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--reservation-text, #1e2b2b);
+  font: inherit;
+  font-size: 0.9375rem;
+}
+
+.send-slot-proposal__select {
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.send-slot-proposal__message {
+  min-height: 96px;
+  padding: 12px 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.send-slot-proposal__select:focus,
+.send-slot-proposal__message:focus {
+  outline: none;
+  border-color: var(--reservation-primary, #2d6a6a);
+  box-shadow: 0 0 0 3px rgba(45, 106, 106, 0.12);
+}
+
+.send-slot-proposal__message::placeholder {
+  color: var(--reservation-muted, #6b7b7b);
+}
+
+@media (min-width: 768px) {
+  .send-slot-proposal h1 {
+    font-size: 1.75rem;
+  }
+}
