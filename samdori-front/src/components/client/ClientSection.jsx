@@ -101,7 +101,6 @@ export default function ClientSection({
         />
       ) : (
         <div className="client-booking-list-section">
-          <h1>내 예약</h1>
           <p className="reservation-page__description">
             예약 요청 상태를 확인할 수 있습니다. 승인 대기, 확정, 거절
             상태가 표시됩니다.

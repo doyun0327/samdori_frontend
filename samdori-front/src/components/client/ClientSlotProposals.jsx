@@ -169,32 +169,19 @@ export default function ClientSlotProposals({
   const knownSlotKeysRef = useRef(new Set())
   const { showConfirm } = useAppAlert()
 
-  const syncProposalCount = useCallback(
-    (nextProposals) => {
-      onProposalCountChange?.(mergeProposalsByCounselor(nextProposals).length)
-    },
-    [onProposalCountChange],
-  )
-
-  const applyLocalSlotRemoval = useCallback(
-    (proposalId, slot) => {
-      setProposals((prev) => {
-        const next = removeSlotFromProposals(prev, {
-          proposalId,
-          date: slot.date,
-          timeSlot: slot.timeSlot,
-        })
-        syncProposalCount(next)
-        return next
-      })
-    },
-    [syncProposalCount],
-  )
+  const applyLocalSlotRemoval = useCallback((proposalId, slot) => {
+    setProposals((prev) =>
+      removeSlotFromProposals(prev, {
+        proposalId,
+        date: slot.date,
+        timeSlot: slot.timeSlot,
+      }),
+    )
+  }, [])
 
   const loadProposals = useCallback(async () => {
     if (!clientId) {
       setProposals([])
-      onProposalCountChange?.(0)
       return
     }
 
@@ -204,18 +191,20 @@ export default function ClientSlotProposals({
       const list = await fetchClientSlotProposals(clientId)
       const active = filterActiveProposals(list)
       setProposals(active)
-      syncProposalCount(active)
     } catch {
       setProposals([])
-      onProposalCountChange?.(0)
     } finally {
       setIsLoading(false)
     }
-  }, [clientId, onProposalCountChange, syncProposalCount])
+  }, [clientId])
 
   useEffect(() => {
     loadProposals()
   }, [loadProposals])
+
+  useEffect(() => {
+    onProposalCountChange?.(mergeProposalsByCounselor(proposals).length)
+  }, [proposals, onProposalCountChange])
 
   useSlotProposalsUpdatedListener(loadProposals)
 

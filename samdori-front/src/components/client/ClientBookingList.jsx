@@ -130,7 +130,7 @@ export default function ClientBookingList({ clientId, onPendingCountChange }) {
     <>
       <section className="client-booking-upcoming">
         <div className="client-booking-upcoming__header">
-          <h2 className="client-booking-upcoming__title">남은 상담</h2>
+          <h2 className="client-booking-upcoming__title">예약된 상담</h2>
           {upcomingBookings.length > 0 && (
             <span className="client-booking-upcoming__count">
               {upcomingBookings.length}건
@@ -158,6 +158,12 @@ export default function ClientBookingList({ clientId, onPendingCountChange }) {
         )}
       </section>
 
+      {message && (
+        <p className="reservation-page__message" role="status">
+          {message}
+        </p>
+      )}
+
       {pastBookings.length > 0 && (
         <button
           type="button"
@@ -176,12 +182,6 @@ export default function ClientBookingList({ clientId, onPendingCountChange }) {
           bookings={pastBookings}
           onClose={() => setIsPastModalOpen(false)}
         />
-      )}
-
-      {message && (
-        <p className="reservation-page__message" role="status">
-          {message}
-        </p>
       )}
     </>
   )

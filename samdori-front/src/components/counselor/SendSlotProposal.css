@@ -19,7 +19,8 @@
 }
 
 .send-slot-proposal__select,
-.send-slot-proposal__message {
+.send-slot-proposal__message,
+.send-slot-proposal__search-input {
   width: 100%;
   box-sizing: border-box;
   border: 1px solid var(--reservation-border, #d7e4e1);
@@ -35,6 +36,66 @@
   padding: 0 14px;
 }
 
+.send-slot-proposal__search {
+  position: relative;
+}
+
+.send-slot-proposal__search-input {
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.send-slot-proposal__search-status {
+  margin: 8px 0 0;
+  color: var(--reservation-muted, #6b7b7b);
+  font-size: 0.8125rem;
+}
+
+.send-slot-proposal__search-results {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(30, 43, 43, 0.08);
+}
+
+.send-slot-proposal__search-option {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--reservation-text, #1e2b2b);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.send-slot-proposal__search-option:hover,
+.send-slot-proposal__search-option[aria-selected='true'] {
+  background: var(--reservation-primary-soft, rgba(45, 106, 106, 0.12));
+  color: var(--reservation-primary-dark, #245656);
+}
+
+.send-slot-proposal__search-empty {
+  padding: 12px;
+  color: var(--reservation-muted, #6b7b7b);
+  font-size: 0.875rem;
+}
+
 .send-slot-proposal__message {
   min-height: 96px;
   padding: 12px 14px;
@@ -43,6 +104,7 @@
 }
 
 .send-slot-proposal__select:focus,
+.send-slot-proposal__search-input:focus,
 .send-slot-proposal__message:focus {
   outline: none;
   border-color: var(--reservation-primary, #2d6a6a);

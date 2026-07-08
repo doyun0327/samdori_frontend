@@ -2,6 +2,7 @@ import {
   BOOKING_STATUS,
   BOOKING_STATUS_LABEL,
 } from '../../features/booking/constants'
+import { canClientCancelBooking } from '../../features/booking/bookingUtils'
 import {
   formatBookingSchedule,
   formatRequestedAt,
@@ -14,10 +15,7 @@ export default function ClientBookingCard({
   isCancelling = false,
   onCancel,
 }) {
-  const canCancel =
-    Boolean(onCancel) &&
-    booking.status === BOOKING_STATUS.PENDING &&
-    isUpcoming
+  const canCancel = Boolean(onCancel) && canClientCancelBooking(booking, isUpcoming)
 
   return (
     <article
@@ -33,11 +31,6 @@ export default function ClientBookingCard({
           {isUpcoming && booking.status === BOOKING_STATUS.ACCEPTED && (
             <span className="client-booking-card__timeline client-booking-card__timeline--upcoming">
               예정
-            </span>
-          )}
-          {!isUpcoming && (
-            <span className="client-booking-card__timeline client-booking-card__timeline--past">
-              종료
             </span>
           )}
           <span

@@ -110,21 +110,6 @@ export function notifySlotProposalsUpdated() {
   window.dispatchEvent(new Event(SLOT_PROPOSALS_UPDATED_EVENT))
 }
 
-export function extractClientsFromBookings(bookings) {
-  const clients = new Map()
-
-  bookings.forEach((booking) => {
-    if (!booking.clientId) return
-
-    clients.set(String(booking.clientId), {
-      id: String(booking.clientId),
-      name: booking.clientName || '내담자',
-    })
-  })
-
-  return [...clients.values()].sort((a, b) => a.name.localeCompare(b.name, 'ko'))
-}
-
 function sortSlots(slots) {
   return [...slots].sort((a, b) => {
     const dateCompare = a.date.localeCompare(b.date)

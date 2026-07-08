@@ -89,6 +89,31 @@
   text-overflow: ellipsis;
 }
 
+.counselor-schedule__cancel {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--reservation-muted, #6b7b7b);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.counselor-schedule__cancel:hover {
+  color: #b04545;
+  border-color: #e0bcbc;
+}
+
+.counselor-schedule__cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (min-width: 768px) {
   .counselor-schedule h1 {
     font-size: 1.75rem;
