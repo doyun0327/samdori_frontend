@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   bookSlotFromProposal,
   declineClientSlotProposal,
-  fetchClientSlotProposalCount,
   fetchClientSlotProposals,
 } from '../../features/slotProposal/api/slotProposals'
 import { useSlotProposalsUpdatedListener } from '../../features/slotProposal/hooks/useSlotProposalsUpdatedListener'
@@ -160,21 +159,13 @@ export default function ClientSlotProposals({
   onBooked,
   onProposalCountChange,
 }) {
-  const [proposalCount, setProposalCount] = useState(0)
   const [proposals, setProposals] = useState([])
-  const [isListLoaded, setIsListLoaded] = useState(false)
-  const [isCountLoading, setIsCountLoading] = useState(false)
-  const [isListLoading, setIsListLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [processingKey, setProcessingKey] = useState('')
   const [message, setMessage] = useState('')
   const [isCompact, setIsCompact] = useState(false)
   const knownSlotKeysRef = useRef(new Set())
-  const isListLoadedRef = useRef(false)
   const { showConfirm } = useAppAlert()
-
-  useEffect(() => {
-    isListLoadedRef.current = isListLoaded
-  }, [isListLoaded])
 
   const applyLocalSlotRemoval = useCallback((proposalId, slot) => {
     setProposals((prev) =>
@@ -186,69 +177,38 @@ export default function ClientSlotProposals({
     )
   }, [])
 
-  const loadCount = useCallback(async () => {
-    if (!clientId) {
-      setProposalCount(0)
-      onProposalCountChange?.(0)
-      return
-    }
-
-    setIsCountLoading(true)
-
-    try {
-      const count = await fetchClientSlotProposalCount(clientId)
-      setProposalCount(count)
-      onProposalCountChange?.(count)
-    } catch {
-      setProposalCount(0)
-      onProposalCountChange?.(0)
-    } finally {
-      setIsCountLoading(false)
-    }
-  }, [clientId, onProposalCountChange])
-
   const loadProposals = useCallback(async () => {
     if (!clientId) {
       setProposals([])
-      setIsListLoaded(false)
       return
     }
 
-    setIsListLoading(true)
+    setIsLoading(true)
 
     try {
       const list = await fetchClientSlotProposals(clientId)
-      setProposals(filterActiveProposals(list))
-      setIsListLoaded(true)
+      const active = filterActiveProposals(list)
+      setProposals(active)
     } catch {
       setProposals([])
     } finally {
-      setIsListLoading(false)
+      setIsLoading(false)
     }
   }, [clientId])
 
   useEffect(() => {
-    setIsListLoaded(false)
-    setProposals([])
-    loadCount()
-  }, [loadCount])
-
-  const handleProposalUpdated = useCallback(() => {
-    loadCount()
-    if (isListLoadedRef.current) {
-      loadProposals()
-    }
-  }, [loadCount, loadProposals])
-
-  useSlotProposalsUpdatedListener(handleProposalUpdated)
+    loadProposals()
+  }, [loadProposals])
 
   useEffect(() => {
-    if (!isListLoaded) return
+    onProposalCountChange?.(mergeProposalsByCounselor(proposals).length)
+  }, [proposals, onProposalCountChange])
 
+  useSlotProposalsUpdatedListener(loadProposals)
+
+  useEffect(() => {
     const nextKeys = getProposalSlotKeySet(proposals)
-    const hasNewSlots = [...nextKeys].some(
-      (key) => !knownSlotKeysRef.current.has(key),
-    )
+    const hasNewSlots = [...nextKeys].some((key) => !knownSlotKeysRef.current.has(key))
 
     if (hasNewSlots) {
       setMessage('')
@@ -256,18 +216,12 @@ export default function ClientSlotProposals({
     }
 
     knownSlotKeysRef.current = nextKeys
-  }, [proposals, isListLoaded])
+  }, [proposals])
 
   const mergedProposalGroups = useMemo(
     () => mergeProposalsByCounselor(proposals),
     [proposals],
   )
-
-  const handleOpenList = () => {
-    setMessage('')
-    setIsCompact(false)
-    loadProposals()
-  }
 
   const handleConfirmSlot = async (proposalId, slot, group) => {
     const scheduleLabel = formatBookingSchedule(slot.date, slot.timeSlot)
@@ -287,10 +241,7 @@ export default function ClientSlotProposals({
         timeSlot: slot.timeSlot,
       })
       applyLocalSlotRemoval(proposalId, slot)
-      setMessage(
-        `${group.counselorName} 상담사 ${scheduleLabel} 예약을 확정했습니다.`,
-      )
-      loadCount()
+      setMessage(`${group.counselorName} 상담사 ${scheduleLabel} 예약을 확정했습니다.`)
       onBooked?.()
     } catch (error) {
       const errorMessage =
@@ -321,7 +272,6 @@ export default function ClientSlotProposals({
       applyLocalSlotRemoval(proposalId, slot)
       setIsCompact(true)
       setMessage(`${scheduleLabel} 제안을 거절했습니다.`)
-      loadCount()
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : '제안 거절에 실패했습니다.'
@@ -331,71 +281,11 @@ export default function ClientSlotProposals({
     }
   }
 
-  if (isCountLoading && !isListLoaded) {
+  if (isLoading) {
     return (
       <section className="client-slot-proposals client-slot-proposals--loading">
         <p className="client-slot-proposals__loading" role="status">
           받은 시간 제안을 확인하는 중입니다...
-        </p>
-      </section>
-    )
-  }
-
-  if (!isListLoaded) {
-    if (proposalCount <= 0 && !message) {
-      return null
-    }
-
-    return (
-      <section className="client-slot-proposals" aria-label="받은 시간 제안">
-        {proposalCount > 0 && (
-          <>
-            <div className="client-slot-proposals__banner">
-              <div
-                className="client-slot-proposals__banner-icon"
-                aria-hidden="true"
-              >
-                🔔
-              </div>
-              <div className="client-slot-proposals__banner-copy">
-                <p className="client-slot-proposals__eyebrow">새 요청</p>
-                <h2 className="client-slot-proposals__title">상담 시간 제안</h2>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="client-slot-proposals__open-list"
-              onClick={handleOpenList}
-              disabled={isListLoading}
-            >
-              <span>
-                {isListLoading
-                  ? '불러오는 중...'
-                  : `받은 시간 제안 ${proposalCount}건 보기`}
-              </span>
-              <span
-                className="client-slot-proposals__open-list-arrow"
-                aria-hidden="true"
-              >
-                ›
-              </span>
-            </button>
-          </>
-        )}
-        {message && (
-          <p className="client-slot-proposals__feedback" role="status">
-            {message}
-          </p>
-        )}
-      </section>
-    )
-  }
-
-  if (isListLoading && mergedProposalGroups.length === 0) {
-    return (
-      <section className="client-slot-proposals client-slot-proposals--loading">
-        <p className="client-slot-proposals__loading" role="status">
-          받은 시간 제안을 불러오는 중입니다...
         </p>
       </section>
     )
