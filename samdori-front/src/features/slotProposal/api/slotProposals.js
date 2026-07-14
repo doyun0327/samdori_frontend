@@ -45,6 +45,30 @@ export async function createSlotProposal({
   return proposal
 }
 
+function extractCount(data) {
+  if (typeof data === 'number') {
+    return data
+  }
+
+  const payload = data?.data ?? data
+  const raw = payload?.count ?? payload
+
+  const count = Number(raw)
+  return Number.isFinite(count) ? count : 0
+}
+
+export async function fetchClientSlotProposalCount(clientId) {
+  if (clientId == null || clientId === '') {
+    return 0
+  }
+
+  const data = await requestJson(
+    `${API_BASE_URL}/api/slot-proposals/client/count?clientId=${clientId}`,
+  )
+
+  return extractCount(data)
+}
+
 export async function fetchClientSlotProposals(clientId) {
   if (clientId == null || clientId === '') {
     return []
@@ -55,6 +79,18 @@ export async function fetchClientSlotProposals(clientId) {
   )
 
   return extractSlotProposals(data)
+}
+
+export async function fetchCounselorSlotProposalCount(counselorId) {
+  if (counselorId == null || counselorId === '') {
+    return 0
+  }
+
+  const data = await requestJson(
+    `${API_BASE_URL}/api/slot-proposals/counselor/count?counselorId=${counselorId}`,
+  )
+
+  return extractCount(data)
 }
 
 export async function fetchCounselorSlotProposals(counselorId) {

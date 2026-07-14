@@ -70,10 +70,40 @@
   font-weight: 700;
 }
 
-.client-slot-proposals__loading {
+  .client-slot-proposals__loading {
   margin: 0;
   color: var(--reservation-muted, #6b7b7b);
   font-size: 0.9375rem;
+}
+
+.client-slot-proposals__open-list {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 14px;
+  background: #f5f7f6;
+  color: var(--reservation-text, #1e2b2b);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.client-slot-proposals__open-list:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.client-slot-proposals__open-list-arrow {
+  color: var(--reservation-primary-dark, #245656);
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .client-slot-proposals__list {

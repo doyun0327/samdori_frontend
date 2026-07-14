@@ -204,6 +204,92 @@
   color: var(--reservation-muted, #6b7b7b);
 }
 
+.send-slot-proposal__history-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 14px;
+  background: #f5f7f6;
+  color: var(--reservation-text, #1e2b2b);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.send-slot-proposal__history-link:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.send-slot-proposal__history-link-arrow {
+  color: var(--reservation-primary-dark, #245656);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.sent-proposals-sheet__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sent-proposals-sheet__item {
+  padding: 14px 16px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.sent-proposals-sheet__item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.sent-proposals-sheet__client {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--reservation-text, #1e2b2b);
+}
+
+.sent-proposals-sheet__status {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(45, 106, 106, 0.12);
+  color: var(--reservation-primary-dark, #245656);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.sent-proposals-sheet__message {
+  margin: 0 0 10px;
+  color: var(--reservation-muted, #6b7b7b);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.sent-proposals-sheet__slots {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--reservation-text, #1e2b2b);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
 @media (min-width: 768px) {
   .send-slot-proposal h1 {
     font-size: 1.75rem;

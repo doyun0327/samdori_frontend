@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AvailabilityCalendar from './AvailabilityCalendar'
 import TimeSlotPicker from './TimeSlotPicker'
+import SentProposalsSheet from './SentProposalsSheet'
 import { fetchCounselorBookingRequests } from '../../features/booking/api/bookings'
 import { getBlockedTimeSlots } from '../../features/booking/bookingUtils'
 import { isFutureTimeSlot } from '../../features/booking/formatBooking'
@@ -9,6 +10,7 @@ import { formatClientLabel } from '../../features/client/clientUtils'
 import { useBookingsUpdatedListener } from '../../features/booking/hooks/useBookingsUpdatedListener'
 import {
   createSlotProposal,
+  fetchCounselorSlotProposalCount,
   fetchCounselorSlotProposals,
 } from '../../features/slotProposal/api/slotProposals'
 import {
@@ -37,6 +39,9 @@ export default function SendSlotProposal({ counselorId }) {
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([])
   const [counselorBookings, setCounselorBookings] = useState([])
   const [counselorProposals, setCounselorProposals] = useState([])
+  const [proposalCount, setProposalCount] = useState(0)
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [isLoadingBookings, setIsLoadingBookings] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -55,6 +60,19 @@ export default function SendSlotProposal({ counselorId }) {
     return [...new Set([...fromBookings, ...fromProposals])]
   }, [counselorBookings, counselorProposals, selectedDate])
 
+  const loadProposalCount = useCallback(async () => {
+    if (!counselorId) {
+      setProposalCount(0)
+      return
+    }
+
+    try {
+      setProposalCount(await fetchCounselorSlotProposalCount(counselorId))
+    } catch {
+      setProposalCount(0)
+    }
+  }, [counselorId])
+
   const loadSlotData = useCallback(async ({ silent = false } = {}) => {
     if (!counselorId) return
 
@@ -63,12 +81,12 @@ export default function SendSlotProposal({ counselorId }) {
     }
 
     try {
-      const [bookings, proposals] = await Promise.all([
+      const [bookings, count] = await Promise.all([
         fetchCounselorBookingRequests(counselorId),
-        fetchCounselorSlotProposals(counselorId),
+        fetchCounselorSlotProposalCount(counselorId),
       ])
       setCounselorBookings(bookings)
-      setCounselorProposals(proposals)
+      setProposalCount(count)
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -234,6 +252,28 @@ export default function SendSlotProposal({ counselorId }) {
     setStatusMessage('')
   }
 
+  const handleOpenHistory = async () => {
+    if (!counselorId || isHistoryLoading) return
+
+    setIsHistoryLoading(true)
+    setStatusMessage('')
+
+    try {
+      const proposals = await fetchCounselorSlotProposals(counselorId)
+      setCounselorProposals(proposals)
+      setProposalCount(proposals.length)
+      setIsHistoryOpen(true)
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : '보낸 제안 기록을 불러오지 못했습니다.'
+      setStatusMessage(errorMessage)
+    } finally {
+      setIsHistoryLoading(false)
+    }
+  }
+
   const handleSend = async () => {
     if (!selectedClientId) {
       setStatusMessage('보낼 고객을 검색해 선택해 주세요.')
@@ -276,6 +316,7 @@ export default function SendSlotProposal({ counselorId }) {
       })
 
       setCounselorProposals((prev) => mergeProposalUpdate(prev, createdProposal))
+      await loadProposalCount()
       await loadSlotData({ silent: true })
 
       setSelectedTimeSlots([])
@@ -477,6 +518,34 @@ export default function SendSlotProposal({ counselorId }) {
       >
         {isSubmitting ? '보내는 중...' : '보내기'}
       </button>
+
+      {proposalCount > 0 && (
+        <button
+          type="button"
+          className="send-slot-proposal__history-link"
+          onClick={handleOpenHistory}
+          disabled={isHistoryLoading}
+        >
+          <span>
+            {isHistoryLoading
+              ? '불러오는 중...'
+              : `보낸 제안 기록 ${proposalCount}건 보기`}
+          </span>
+          <span
+            className="send-slot-proposal__history-link-arrow"
+            aria-hidden="true"
+          >
+            ›
+          </span>
+        </button>
+      )}
+
+      {isHistoryOpen && (
+        <SentProposalsSheet
+          proposals={counselorProposals}
+          onClose={() => setIsHistoryOpen(false)}
+        />
+      )}
     </div>
   )
 }
