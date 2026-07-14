@@ -92,6 +92,14 @@ export function filterActiveProposals(proposals) {
   return proposals.map(withPendingSlotsOnly).filter(Boolean)
 }
 
+/** 수락/거절 대기 중인 제안 시간(슬롯) 개수 */
+export function countActiveProposalSlots(proposals) {
+  return filterActiveProposals(proposals).reduce(
+    (total, proposal) => total + (proposal.slots?.length ?? 0),
+    0,
+  )
+}
+
 export function isActiveSlotProposal(proposal) {
   if (!proposal) return false
 

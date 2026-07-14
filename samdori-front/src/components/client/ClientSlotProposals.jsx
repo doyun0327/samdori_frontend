@@ -12,6 +12,7 @@ import {
   formatTimeSlotRange,
 } from '../../features/booking/formatBooking'
 import {
+  countActiveProposalSlots,
   filterActiveProposals,
   mergeProposalsByCounselor,
   removeSlotFromProposals,
@@ -168,18 +169,22 @@ export default function ClientSlotProposals({
   const { showConfirm } = useAppAlert()
 
   const applyLocalSlotRemoval = useCallback((proposalId, slot) => {
-    setProposals((prev) =>
-      removeSlotFromProposals(prev, {
+    setProposals((prev) => {
+      const next = removeSlotFromProposals(prev, {
         proposalId,
         date: slot.date,
         timeSlot: slot.timeSlot,
-      }),
-    )
-  }, [])
+      })
+      // 탭 이동(onBooked)으로 언마운트되기 전에 배지를 맞춘다
+      onProposalCountChange?.(countActiveProposalSlots(next))
+      return next
+    })
+  }, [onProposalCountChange])
 
   const loadProposals = useCallback(async () => {
     if (!clientId) {
       setProposals([])
+      onProposalCountChange?.(0)
       return
     }
 
@@ -189,20 +194,18 @@ export default function ClientSlotProposals({
       const list = await fetchClientSlotProposals(clientId)
       const active = filterActiveProposals(list)
       setProposals(active)
+      onProposalCountChange?.(countActiveProposalSlots(active))
     } catch {
       setProposals([])
+      onProposalCountChange?.(0)
     } finally {
       setIsLoading(false)
     }
-  }, [clientId])
+  }, [clientId, onProposalCountChange])
 
   useEffect(() => {
     loadProposals()
   }, [loadProposals])
-
-  useEffect(() => {
-    onProposalCountChange?.(mergeProposalsByCounselor(proposals).length)
-  }, [proposals, onProposalCountChange])
 
   useSlotProposalsUpdatedListener(loadProposals)
 
