@@ -10,7 +10,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .counselor-schedule__summary {
@@ -28,88 +28,237 @@
   font-size: 1rem;
 }
 
-.counselor-schedule__days {
+.counselor-schedule__week-nav {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.counselor-schedule__day {
-  padding: 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 8px 10px;
   border: 1px solid var(--reservation-border, #d7e4e1);
-  border-radius: 16px;
-  background: #fafcfc;
+  border-radius: 14px;
+  background: #f7fafa;
 }
 
-.counselor-schedule__date {
-  margin: 0 0 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--reservation-border, #d7e4e1);
-  font-size: 1rem;
+.counselor-schedule__week-label {
+  margin: 0;
+  flex: 1;
+  text-align: center;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: var(--reservation-primary-dark, #245656);
 }
 
-.counselor-schedule__items {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.counselor-schedule__item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  padding: 12px 14px;
+.counselor-schedule__week-button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--reservation-border, #d7e4e1);
   border-radius: 12px;
   background: #fff;
-  border: 1px solid rgba(45, 106, 106, 0.08);
+  color: var(--reservation-primary-dark, #245656);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
 }
 
-.counselor-schedule__time {
-  flex-shrink: 0;
-  font-size: 0.9375rem;
+.counselor-schedule__week-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.counselor-timetable {
+  --timetable-hour-height: 48px;
+  --timetable-label-width: 36px;
+  --timetable-hour-count: 17;
+
+  overflow: hidden;
+  border: 1px solid var(--reservation-border, #d7e4e1);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.counselor-timetable__header-row {
+  display: grid;
+  grid-template-columns: var(--timetable-label-width) 1fr;
+  border-bottom: 1px solid var(--reservation-border, #d7e4e1);
+  background: #f7fafa;
+}
+
+.counselor-timetable__corner {
+  border-right: 1px solid var(--reservation-border, #d7e4e1);
+}
+
+.counselor-timetable__days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.counselor-timetable__day-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 2px 8px;
+  border-left: 1px solid var(--reservation-border, #d7e4e1);
+}
+
+.counselor-timetable__weekday {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--reservation-muted, #6b7b7b);
+}
+
+.counselor-timetable__daynum {
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--reservation-text, #1e2b2b);
-  white-space: nowrap;
 }
 
-.counselor-schedule__client {
-  flex: 1;
-  min-width: 0;
+.counselor-timetable__day-header--today .counselor-timetable__weekday,
+.counselor-timetable__day-header--today .counselor-timetable__daynum {
+  color: var(--reservation-primary, #2d6a6a);
+}
+
+.counselor-timetable__day-header--today .counselor-timetable__daynum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(45, 106, 106, 0.14);
+}
+
+.counselor-timetable__body {
+  display: grid;
+  grid-template-columns: var(--timetable-label-width) 1fr;
+  max-height: calc(var(--timetable-hour-height) * 12);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.counselor-timetable__hours {
+  height: calc(var(--timetable-hour-height) * var(--timetable-hour-count));
+  background: #fff;
+  border-right: 1px solid var(--reservation-border, #d7e4e1);
+}
+
+.counselor-timetable__hour {
+  box-sizing: border-box;
+  height: var(--timetable-hour-height);
+  padding-top: 2px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--reservation-muted, #6b7b7b);
+  text-align: center;
+  line-height: 1;
+}
+
+.counselor-timetable__columns {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  height: calc(var(--timetable-hour-height) * var(--timetable-hour-count));
+}
+
+.counselor-timetable__column {
+  height: 100%;
+  border-left: 1px solid var(--reservation-border, #d7e4e1);
+}
+
+.counselor-timetable__cell {
+  position: relative;
+  z-index: 0;
+  box-sizing: border-box;
+  height: var(--timetable-hour-height);
+  overflow: visible;
+  border-bottom: 1px solid rgba(215, 228, 225, 0.75);
+}
+
+.counselor-timetable__cell:has(.counselor-timetable__block) {
+  z-index: 1;
+}
+
+.counselor-timetable__block {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--reservation-text, #1e2b2b);
+  margin: 0;
+  padding: 0 2px;
+  border: none;
+  border-radius: 0;
+  color: #fff;
+  text-align: center;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: inset 0 -1px 0 rgba(215, 228, 225, 0.9);
+}
+
+.counselor-timetable__block:hover {
+  filter: brightness(1.05);
+}
+
+.counselor-timetable__block-name {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.2;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.counselor-schedule__cancel {
-  flex-shrink: 0;
-  min-height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--reservation-border, #d7e4e1);
-  border-radius: 10px;
-  background: #fff;
-  color: var(--reservation-muted, #6b7b7b);
-  font: inherit;
-  font-size: 0.8125rem;
+.counselor-schedule-detail .past-bookings-sheet__header {
+  grid-template-columns: 1fr auto;
+}
+
+.counselor-schedule-detail__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 0 20px;
+}
+
+.counselor-schedule-detail__meta > div {
+  display: grid;
+  gap: 4px;
+}
+
+.counselor-schedule-detail__meta dt {
+  margin: 0;
+  font-size: 0.75rem;
   font-weight: 700;
-  white-space: nowrap;
+  color: var(--reservation-muted, #6b7b7b);
+}
+
+.counselor-schedule-detail__meta dd {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--reservation-text, #1e2b2b);
+}
+
+.counselor-schedule-detail__cancel {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #e0bcbc;
+  border-radius: 12px;
+  background: #fff;
+  color: #b04545;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.counselor-schedule__cancel:hover {
-  color: #b04545;
-  border-color: #e0bcbc;
-}
-
-.counselor-schedule__cancel:disabled {
+.counselor-schedule-detail__cancel:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -117,5 +266,18 @@
 @media (min-width: 768px) {
   .counselor-schedule h1 {
     font-size: 1.75rem;
+  }
+
+  .counselor-timetable {
+    --timetable-hour-height: 52px;
+    --timetable-label-width: 42px;
+  }
+
+  .counselor-timetable__body {
+    max-height: none;
+  }
+
+  .counselor-timetable__block-name {
+    font-size: 0.6875rem;
   }
 }
